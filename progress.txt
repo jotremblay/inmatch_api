@@ -1,0 +1,24 @@
+[inmatch_api]
+
+- Need to select a minimum Elo in the event a match isn’t found
+
+- Create serve/return data set in terms of atp player ids 
+
+UPDATES
+	- atp_elo
+	- serve_priors (all matchups)
+	- Using 100 minus minimum elo
+
+——
+
+
+iid_player_probs - Use GIGEngine components
+
+serve probabilities
+
+
+[oncourt]
+
+- Need to handle win a player has no data in past year? (assign to average?)
+
+
