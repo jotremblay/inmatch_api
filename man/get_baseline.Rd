@@ -4,7 +4,7 @@
 \alias{get_baseline}
 \title{Get Baseline Serve and Win Probabilities}
 \usage{
-get_baseline(playerid, opponentid, mens = TRUE, bestof3 = T)
+get_baseline(playerid, opponentid, mens = TRUE, format)
 }
 \arguments{
 \item{playerid.}{4-character player id}
@@ -13,7 +13,7 @@ get_baseline(playerid, opponentid, mens = TRUE, bestof3 = T)
 
 \item{mens.}{Logical TRUE if mens match, FALSE if womens}
 
-\item{bestof3.}{Logical TRUE if bestof3 match, FALSE if bestof5}
+\item{format.}{Character ('bestof3', 'laver' or 'bestof5')}
 }
 \value{
 data frame of player 1 and player 2 win probs

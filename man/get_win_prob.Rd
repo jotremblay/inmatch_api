@@ -5,18 +5,50 @@
 \alias{get_win_prob}
 \title{Win Prob at End of Point}
 \usage{
-get_win_prob(playerid, opponentid, mens = TRUE)
+get_win_prob(player1.score, player2.score, player1.games, player2.games,
+  player1.sets, player2.sets, player1.serve.won, player1.serve.points,
+  player2.serve.won, player2.serve.points, player1.serve.prob,
+  player2.serve.prob, player1.won, player1.serving = T, format)
 
-get_win_prob(playerid, opponentid, mens = TRUE)
+get_win_prob(player1.score, player2.score, player1.games, player2.games,
+  player1.sets, player2.sets, player1.serve.won, player1.serve.points,
+  player2.serve.won, player2.serve.points, player1.serve.prob,
+  player2.serve.prob, player1.won, player1.serving = T, format)
 }
 \arguments{
-\item{mens}{Logical if men's match}
+\item{player1.score}{Player points won at the start of current point}
+
+\item{player2.score}{Player points won at the start of current point}
+
+\item{player1.games}{Player number of games won in the current set}
+
+\item{player2.games}{Player number of games won in the current set}
+
+\item{player1.sets}{Player sets won in the current match}
+
+\item{player2.sets}{Player sets won in the current match}
+
+\item{player1.serve.won}{Player service points won in the current match}
+
+\item{player1.serve.points}{Player service points played in the current match}
+
+\item{player2.serve.won}{Player service points won in the current match}
+
+\item{player2.serve.points}{Player service points played in the current match}
+
+\item{player1.serve.prob}{Player expected probability of winning on serve from \code{get_baseline}}
+
+\item{player2.serve.prob}{Player expected probability of winning on serve from \code{get_baseline}}
+
+\item{player1.won}{Logical (TRUE or FALSE) whether player 1 won the current point}
+
+\item{player1.serving}{Logical (TRUE or FALSE) whether player 1 served the current point}
 
 \item{data}{Data frame from \code{point_data}}
 
-\item{data}{Data frame from \code{point_data}}
-
 \item{mens}{Logical if men's match}
+
+\item{format.}{Character description of match format ('bestof3', 'laver', 'bestof5')}
 }
 \value{
 data frame of player 1 and player 2 win probs

@@ -5,12 +5,12 @@
 #' @param playerid. 4-character player id
 #' @param opponentid. 4-character opponent id
 #' @param mens. Logical TRUE if mens match, FALSE if womens
-#' @param bestof3. Logical TRUE if bestof3 match, FALSE if bestof5
+#' @param format. Character ('bestof3', 'laver' or 'bestof5')
 #'
 #' @return data frame of player 1 and player 2 win probs
 #'
 #' @export
-get_baseline <- function(playerid, opponentid, mens = TRUE, bestof3 = T){
+get_baseline <- function(playerid, opponentid, mens = TRUE, format){
 	
 	player1.elo <- elo_lookup(playerid, mens)
 	
@@ -19,9 +19,9 @@ get_baseline <- function(playerid, opponentid, mens = TRUE, bestof3 = T){
 	player1.win.prediction <- elo_prediction(player1.elo, player2.elo)
 	player2.win.prediction <- elo_prediction(player2.elo, player1.elo)
 	
-	player1.serve.prob <- calibrate_serve(player1.win.prediction, playerid, opponentid, bestof3 = bestof3)
+	player1.serve.prob <- calibrate_serve(player1.win.prediction, playerid, opponentid, bestof3 = format %in% c("laver", "bestof3"))
 	
-	player2.serve.prob <- calibrate_serve(player2.win.prediction, opponentid, playerid, bestof3 = bestof3)
+	player2.serve.prob <- calibrate_serve(player2.win.prediction, opponentid, playerid, bestof3 = format %in% c("laver", "bestof3"))
 
 	data.frame(
 		playerid = playerid, 

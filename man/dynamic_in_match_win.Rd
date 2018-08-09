@@ -6,7 +6,7 @@
 \usage{
 dynamic_in_match_win(point_a, point_b, game_a, game_b, set_a, set_b,
   server.prob, returner.prob, server.serve.points.won, server.serve.points,
-  returner.serve.points.won, returner.serve.points, bestof3 = TRUE)
+  returner.serve.points.won, returner.serve.points, format)
 }
 \arguments{
 \item{point_a}{Numeric game points won by current server at start of point}
@@ -30,6 +30,8 @@ dynamic_in_match_win(point_a, point_b, game_a, game_b, set_a, set_b,
 \item{returner.serve.points.won}{Numeric total service points won in match up to current point}
 
 \item{returner.serve.points}{Numeric total service points played in match up to current point}
+
+\item{format}{Character and one of ('bestof3', 'laver', or 'bestof5')}
 
 \item{return.prob}{Numeric serve win prob of current returner}
 }
