@@ -4,7 +4,7 @@
 \alias{get_baseline}
 \title{Get Baseline Serve and Win Probabilities}
 \usage{
-get_baseline(playerid, opponentid, mens = TRUE, format)
+get_baseline(playerid, opponentid, mens = TRUE, format = "laver")
 }
 \arguments{
 \item{playerid.}{4-character player id}

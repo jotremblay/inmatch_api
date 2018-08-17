@@ -79,6 +79,12 @@ update_score <- function(pointa, pointb, gamea, gameb, seta, setb, bestof3 = T){
 			}	
 			
 			
+			if(regular.tiebreak){
+				(pointa + pointb) %% 2 == 1
+				serve.changed <- T
+			}
+			
+			
 			data.frame(
 				pointa = pointa, 
 				pointb = pointb, 
