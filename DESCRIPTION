@@ -1,7 +1,7 @@
 Package: inmatch
 Type: Package
 Title: Dynamic In-Match Prediction
-Version: 0.1
+Version: 0.2
 Date: 2017-8-13
 Author: Stephanie Kovalchik
 Maintainer: Stephanie Kovalchik <skovalchik@tennis.com.au>

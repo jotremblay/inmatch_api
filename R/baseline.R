@@ -23,14 +23,27 @@ get_baseline <- function(playerid, opponentid, mens = TRUE, format = 'laver'){
 	
 	player2.serve.prob <- calibrate_serve(player2.win.prediction, opponentid, playerid, bestof3 = format %in% c("laver", "bestof3"))
 
-	data.frame(
-		playerid = playerid, 
-		opponentid = opponentid,
-		playerelo = player1.elo,
-		opponentelo = player2.elo,
-		playerwin = player1.win.prediction,
-		opponentwin = player2.win.prediction,
-		playerserve = player1.serve.prob,
-		opponentserve = player2.serve.prob
+	labels <- c(
+		"playerid",
+		"opponentid",
+		"playerelo",
+		"opponentelo",
+		"playerwin",
+		"opponentwin",
+		"playerserve",
+		"opponentserve"
 	)
+	
+	values <- c(
+		playerid,
+		opponentid,
+		player1.elo,
+		player2.elo,
+		player1.win.prediction,
+		player2.win.prediction,
+		player1.serve.prob,
+		player2.serve.prob
+	)
+	
+paste(paste(labels, values, sep = ':'), collapse = ",", sep = "")
 }

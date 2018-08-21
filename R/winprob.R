@@ -144,12 +144,18 @@ get_win_prob <- function(
 						
 				formatting <- function(x) round(x * 100, 1)
 				
-				
 				winprob$win.prob <- formatting(winprob$win.prob)
 				winprob$win.prob.point.won <- formatting(winprob$win.prob.point.won)
 				winprob$win.prob.point.lost <- formatting(winprob$win.prob.point.lost)
 				winprob$importance <- formatting(winprob$importance)
 				
+				player1 <- winprob[1,]
+				player2 <- winprob[2,]
 				
-winprob		
+				values <- c(as.numeric(winprob[1,]), as.numeric(winprob[2,]))
+				
+				names(values) <- paste(rep(c("player1","player2"), each = 4), names(winprob), sep = ".")
+				
+					
+paste(paste(names(values), values, sep = ':'), collapse = ",", sep = "")
 }
