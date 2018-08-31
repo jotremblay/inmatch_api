@@ -1,8 +1,8 @@
 Package: inmatch
 Type: Package
 Title: Dynamic In-Match Prediction
-Version: 0.2
-Date: 2017-8-13
+Version: 0.3
+Date: 2017-8-31
 Author: Stephanie Kovalchik
 Maintainer: Stephanie Kovalchik <skovalchik@tennis.com.au>
 Description: Functions for dynamic in-match win prediction

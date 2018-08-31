@@ -43,17 +43,19 @@ get_win_prob <- function(
 			if(player1.serving){
 				if(format == "laver")
 				score <- update_score_laver(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets)
+				else
 				score <- update_score(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets, bestof = format == "bestof3")	
 					
 			}
 			else{
 				if(format == "laver")
-				score <- update_score_laver(player2.score + as.numeric(player2.won), player1.score + as.numeric(!player2.won), player2.games, player1.games, player2.sets, player1.sets)
+				score <- update_score_laver(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets)
 				else
-				score <- update_score(player2.score + as.numeric(player2.won), player1.score + as.numeric(!player2.won), player2.games, player1.games, player2.sets, player1.sets,  bestof = format == "bestof3")
+				score <- update_score(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets,  bestof = format == "bestof3")
 				
 			}
 		
+			
 			# Adjust erroneous set scores
 			if(format != "bestof5" & (score$seta + score$setb) > 2){
 					score$seta <- 1
@@ -108,10 +110,10 @@ get_win_prob <- function(
 						set_b = score$setb,
 						server.prob = player2.serve.prob,
 						returner.prob =  player1.serve.prob,
-						server.serve.points.won = player2.serve.stats$serve,
-						server.serve.points = player2.serve.stats$n,
-						returner.serve.points.won = player1.serve.stats$serve,
-						returner.serve.points = player1.serve.stats$n,
+						server.serve.points.won = player2.serve.won,
+						server.serve.points = player2.serve.points,
+						returner.serve.points.won = player1.serve.won,
+						returner.serve.points = player1.serve.points,								
 						format = format
 					)				
 
