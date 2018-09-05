@@ -18,6 +18,18 @@
 #'
 #' @export
 dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b, server.prob, returner.prob, server.serve.points.won, server.serve.points, returner.serve.points.won, returner.serve.points, format) {
+	
+		assign.weight <- function(points){
+			 n0 <- 900
+			 n0 / (n0 + points^2)
+			}
+	
+	
+		  assign.weight <- function(points){
+			 n0 <- 2700
+			 n0 / (n0 + points^2)
+			}	
+	
 
 	dynamic_in_match_win3 <- function (point_a, point_b, game_a, game_b, set_a, set_b, server.prob, returner.prob, server.serve.points.won, server.serve.points, returner.serve.points.won, returner.serve.points) 
 	{
@@ -300,11 +312,6 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 		}
 	
 	
-		
-		assign.weight <- function(points){
-			 n0 <- 900
-			 n0 / (n0 + points^2)
-			}
 	
 			W <- assign.weight(server.serve.points)
 			
@@ -702,14 +709,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 		        type1 + type2 + type3 + type4
 		   }
 		}
-	
-	
 		
-		assign.weight <- function(points){
-			 n0 <- 900
-			 n0 / (n0 + points^2)
-			}
-	
 			W <- assign.weight(server.serve.points)
 			
 			if(server.serve.points != 0){
@@ -1141,11 +1141,6 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 	   }
 	}
 	
-		
-		assign.weight <- function(points){
-			 n0 <- 900
-			 n0 / (n0 + points^2)
-			}
 	
 			W <- assign.weight(server.serve.points)
 			
