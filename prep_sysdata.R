@@ -13,19 +13,20 @@ player_names <- data.frame(
 	"Roger Federer",
 	"Grigor Dimitrov",
 	"Alexander Zverev",
-	"Dominic Thiem",
-	"Marin Cilic",
+	"Novak Djokovic",
+	"David Goffin",
+	"Kyle Edmund",
 	"Jack Sock",
 	"Juan Martin Del Potro",
-	"Sam Querrey",
 	"John Isner",
 	"Nick Kyrgios",
-	"Milos Raonic",
-	"Kevin Anderson"
+	"Kevin Anderson",
+	"Diego Sebastian Schwartzman"
 ),
-	World = rep(c(0, 1), c(5, 7)),
+	World = rep(c(0, 1), each = 6),
 	stringsAsFactors = F
 )
+
 
 players <- atp_players_links %>%
 	filter(NAME_P %in% player_names$Name)
