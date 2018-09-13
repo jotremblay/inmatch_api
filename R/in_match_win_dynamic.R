@@ -173,7 +173,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 		            	
 		           if ((is.regular.tiebreak) & win_game) {
 		            	# Determine who is serving
-		           if (is.regular.tiebreak & point_a + point_b %% 4 %in% c(0, 3)) 
+		           if (is.regular.tiebreak & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 		                  part1 <- matrices[[serving_player]]$tiebreak[(point_a + 
 		                    1), (point_b + 1)]
 		                else 
@@ -185,7 +185,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 		                  1), (point_b + 1)]
 		            else if ((is.regular.tiebreak) & !win_game) {
 		            	# Determine who is serving
-		                if (is.regular.tiebreak & point_a + point_b %% 4 %in% c(0, 3)) 
+		                if (is.regular.tiebreak & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 		                  part1 <- 1 - matrices[[serving_player]]$tiebreak[(point_a + 
 		                    1), (point_b + 1)]
 		              	else   	
@@ -572,7 +572,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 		            	
 		           if ((is.regular.tiebreak) & win_game) {
 		            	# Determine who is serving
-		           if (is.regular.tiebreak & point_a + point_b %% 4 %in% c(0, 3)) 
+		           if (is.regular.tiebreak & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 		                  part1 <- matrices[[serving_player]]$tiebreak[(point_a + 
 		                    1), (point_b + 1)]
 		                else 
@@ -584,7 +584,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 		                  1), (point_b + 1)]
 		            else if ((is.regular.tiebreak) & !win_game) {
 		            	# Determine who is serving
-		                if (is.regular.tiebreak & point_a + point_b %% 4 %in% c(0, 3)) 
+		                if (is.regular.tiebreak & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 		                  part1 <- 1 - matrices[[serving_player]]$tiebreak[(point_a + 
 		                    1), (point_b + 1)]
 		              	else   	
@@ -991,10 +991,10 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 	            	
 	           if ((is.regular.tiebreak | is.tiebreak10) & win_game) {
 	            	# Determine who is serving
-	           if (is.regular.tiebreak & point_a + point_b %% 4 %in% c(0, 3)) 
+	           if (is.regular.tiebreak & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 	                  part1 <- matrices[[serving_player]]$tiebreak[(point_a + 
 	                    1), (point_b + 1)]
-	                else if (is.tiebreak10 & point_a + point_b %% 4 %in% c(0, 3)) 
+	                else if (is.tiebreak10 & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 	                  part1 <- matrices[[serving_player]]$tiebreak10[(point_a + 
 	                    1), (point_b + 1)]
 	                else if (is.regular.tiebreak) 
@@ -1009,10 +1009,10 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 	                  1), (point_b + 1)]
 	            else if ((is.regular.tiebreak | is.tiebreak10) & !win_game) {
 	            	# Determine who is serving
-	                if (is.regular.tiebreak & point_a + point_b %% 4 %in% c(0, 3)) 
+	                if (is.regular.tiebreak & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 	                  part1 <- 1 - matrices[[serving_player]]$tiebreak[(point_a + 
 	                    1), (point_b + 1)]
-	                else if (is.tiebreak10 & point_a + point_b %% 4 %in% c(0, 3)) 
+	                else if (is.tiebreak10 & ((point_a + point_b) %% 4 %in% c(0, 3))) 
 	                  part1 <- 1 - matrices[[serving_player]]$tiebreak10[(point_a + 
 	                    1), (point_b + 1)]
 	                else if (is.regular.tiebreak) 
