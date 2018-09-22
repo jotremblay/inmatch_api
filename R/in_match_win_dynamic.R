@@ -876,11 +876,12 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 	    matrices <- iid_player_probs_lookup(server.prob, returner.prob)
 	    
 	    serving_player <- 1
+	    
 	    returning_player <- 2
 
 		is.regular.tiebreak <- (game_a == 6 & game_b == 6) & (set_a + set_b) != 2	 
 		
-		is.tiebreak10 <- (game_a == 6 & game_b == 6) & (set_a + set_b) != 2   
+		is.tiebreak10 <- (set_a + set_b) == 2   
 
 	    invalid.score <- FALSE
 	    playera.won <- FALSE
@@ -1163,6 +1164,8 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 				returner.prob <- W * returner.prob + (1 - W) * returner.serve.points.won/returner.serve.points
 	
 			#print(c(server.prob, returner.prob))
+			
+			print(c(point_a, point_b, game_a, game_b, set_a, set_b))
 			
 		win <- match_win(
 			point_a,

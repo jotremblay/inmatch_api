@@ -16,14 +16,16 @@ player_names <- data.frame(
 	"Novak Djokovic",
 	"David Goffin",
 	"Kyle Edmund",
+	"Jeremy Chardy",
 	"Jack Sock",
-	"Juan Martin Del Potro",
+	"Frances Tiafoe",
 	"John Isner",
 	"Nick Kyrgios",
 	"Kevin Anderson",
-	"Diego Sebastian Schwartzman"
+	"Diego Sebastian Schwartzman",
+	"Nicolas Jarry"
 ),
-	World = rep(c(0, 1), each = 6),
+	World = rep(c(0, 1), each = 7),
 	stringsAsFactors = F
 )
 
