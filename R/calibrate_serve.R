@@ -3,12 +3,12 @@
 #' Returns the expected probability of player given that player's win expectations
 #'
 #' @param win Numeric value between 0 and 1 that is the player's expected win percentage
-#' @param player_id Character id of player
-#' @param opponent_id Character id of opponent
+#' @param player.serve. Numerical expected serve
+#' @param opponent.serve. Numerical expected serve
 #' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format
 #'
 #' @export
-calibrate_serve <- function(win, player_id, opponent_id, bestof3 = TRUE){
+calibrate_serve <- function(win, player.serve, opponent.serve, bestof3 = TRUE){
 
 	match_win <- function(serve, return, bestof3 = TRUE){
 		
@@ -104,19 +104,12 @@ calibrate_serve <- function(win, player_id, opponent_id, bestof3 = TRUE){
 			
 	(bonus + result) / 2
 	}
-
-	player.serve <- serve_priors %>% filter(playerid == player_id, opponentid == opponent_id)
-	opponent.serve <- serve_priors %>% filter(playerid == opponent_id, opponentid == player_id)
 	
-	if(nrow(player.serve) == 0)
-		player.serve <- mean(serve_priors$Serve)
-	else
-		player.serve <- player.serve$Serve
-		
-	if(nrow(opponent.serve) == 0)
-		opponent.serve <- mean(serve_priors$Serve)
-	else
-		opponent.serve <- opponent.serve$Serve		
 
-calibrate(win, player.serve, opponent.serve, bestof3)
+	check <- calibrate(win, player.serve, opponent.serve, bestof3)
+	
+	if(class(check) == "logical")
+		player.serve
+	else
+		check
 }

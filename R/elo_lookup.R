@@ -2,30 +2,70 @@
 #'
 #' Extracts current elo from stored "elo" data
 #'
-#' @param id Character id of player
+#' @param id1 Character id of player 1
+#' @param id2 Character id of player 2 (if doubles)
 #' @param mens Logical if mens or womens match
+#' @param default Numerical rating used when ID not found
 #'
 #' @return Numeric elo value
 #'
 #' @export
-elo_lookup <- function(id, mens){
+elo_lookup <- function(id1, id2 = NULL, mens, default = 1300){
 
-	
 	if(mens){
-		elo <- atp_elo %>% filter(playerid == id)
+		if(is.null(id2)){
+		elo <- atp_elo %>% filter(playerid == id1)
 	
 		if(nrow(elo) == 0)
-			min(atp_elo$elo) - 100	
+			default	
 		else
 			elo$elo		
+		}
+		else{
+			
+			elo1 <- atp_elo_doubles %>% filter(playerid == id1)
+			elo2 <- atp_elo_doubles %>% filter(playerid == id2)
+
+		if(nrow(elo1) == 0)
+			elo1 <- default
+		else
+			elo1 <- elo1$elo	
+			
+
+		if(nrow(elo2) == 0)
+			elo2 <- default
+		else
+			elo2 <- elo2$elo	
+			
+		(elo1 + elo2) / 2				
+		}
 	}
 	else{
-		elo <- wta_elo %>% filter(playerid == id)
+		if(is.null(id2)){
+		elo <- wta_elo %>% filter(playerid == id1)
 		
 		if(nrow(elo) == 0)
-			min(atp_elo$elo) - 100	
+			default
 		else
 			elo$elo	
-	}
+		}
+		else{
+			
+			elo1 <- wta_elo_doubles %>% filter(playerid == id1)
+			elo2 <- wta_elo_doubles %>% filter(playerid == id2)
 
+		if(nrow(elo1) == 0)
+			elo1 <- default
+		else
+			elo1 <- elo1$elo	
+			
+
+		if(nrow(elo2) == 0)
+			elo2 <- default
+		else
+			elo2 <- elo2$elo	
+			
+		(elo1 + elo2) / 2
+		}
+	}
 }

@@ -4,16 +4,21 @@
 \alias{get_baseline}
 \title{Get Baseline Serve and Win Probabilities}
 \usage{
-get_baseline(playerid, opponentid, mens = TRUE, format = "laver")
+get_baseline(player1id, player2id = NULL, opponent1id, opponent2id = NULL,
+  mens = TRUE, format = "laver")
 }
 \arguments{
-\item{playerid.}{4-character player id}
+\item{player1id.}{ATP/WTA player id}
 
-\item{opponentid.}{4-character opponent id}
+\item{player2id.}{ATP/WTA player id (only used for doubles)}
+
+\item{opponent1id.}{ATP/WTA opponent id}
+
+\item{opponent2id.}{ATP/WTA opponent id (only used for doubles)}
 
 \item{mens.}{Logical TRUE if mens match, FALSE if womens}
 
-\item{format.}{Character ('bestof3', 'laver' or 'bestof5')}
+\item{format.}{Character ('bestof3', 'doubles', 'laver' or 'bestof5')}
 }
 \value{
 data frame of player 1 and player 2 win probs

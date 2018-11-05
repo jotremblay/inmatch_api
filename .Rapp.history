@@ -1,0 +1,1092 @@
+illustration <- illustration[order(illustration$set, illustration$game, illustration$point),]
+mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+calibrate_serve
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function (serve, return, bestof3 = TRUE) #
+	{#
+	    p <- serve#
+	    q <- return#
+	    A <- c(1, 3, 0, 4, 0, 0, 3, 3, 1, 4, 0, 0, 4, 4, 0, 3, 1, #
+	        0, 6, 3, 2, 4, 0, 0, 16, 4, 1, 3, 1, 0, 6, 5, 0, 2, 2, #
+	        0, 10, 2, 3, 5, 0, 0, 40, 3, 2, 4, 1, 0, 30, 4, 1, 3, #
+	        2, 0, 4, 5, 0, 2, 3, 0, 5, 1, 4, 6, 0, 0, 50, 2, 3, 5, #
+	        1, 0, 100, 3, 2, 4, 2, 0, 50, 4, 1, 3, 3, 0, 5, 5, 0, #
+	        2, 4, 0, 1, 1, 5, 6, 0, 0, 30, 2, 4, 5, 1, 0, 150, 3, #
+	        3, 4, 2, 0, 200, 4, 2, 3, 3, 0, 75, 5, 1, 2, 4, 0, 6, #
+	        6, 0, 1, 5, 0, 1, 0, 6, 6, 0, 1, 36, 1, 5, 5, 1, 1, 225, #
+	        2, 4, 4, 2, 1, 400, 3, 3, 3, 3, 1, 225, 4, 2, 2, 4, 1, #
+	        36, 5, 1, 1, 5, 1, 1, 6, 0, 0, 6, 1)#
+	    A <- matrix(A, byrow = TRUE, ncol = 6)#
+	    B <- c(1, 3, 0, 3, 0, 0, 3, 3, 1, 3, 0, 0, 3, 4, 0, 2, 1, #
+	        0, 6, 2, 2, 4, 0, 0, 12, 3, 1, 3, 1, 0, 3, 4, 0, 2, 2, #
+	        0, 4, 2, 3, 4, 0, 0, 24, 3, 2, 3, 1, 0, 24, 4, 1, 2, #
+	        2, 0, 4, 5, 0, 1, 3, 0, 5, 1, 4, 5, 0, 0, 40, 2, 3, 4, #
+	        1, 0, 60, 3, 2, 3, 2, 0, 20, 4, 1, 2, 3, 0, 1, 5, 0, #
+	        1, 4, 0, 1, 0, 5, 5, 0, 1, 25, 1, 4, 4, 1, 1, 100, 2, #
+	        3, 3, 2, 1, 100, 3, 2, 2, 3, 1, 25, 4, 1, 1, 4, 1, 1, #
+	        5, 0, 0, 5, 1)#
+	    B <- matrix(B, byrow = TRUE, ncol = 6)#
+	    G <- function(x) x^4 * (15 - 4 * x - (10 * x^2)/(1 - 2 * #
+	        x * (1 - x)))#
+	    tb <- function(x, p, q) {#
+	        D <- p * q/(1 - (p * (1 - q) + (1 - p) * q))#
+	        A[x, 1] * p^A[x, 2] * (1 - p)^A[x, 3] * q^A[x, 4] * (1 - #
+	            q)^A[x, 5] * D^A[x, 6]#
+	    }#
+	    s <- function(x, p, q) {#
+	        B[x, 1] * G(p)^B[x, 2] * (1 - G(p))^B[x, 3] * G(q)^B[x, #
+	            4] * (1 - G(q))^B[x, 5] * (G(p) * G(q) + (G(p) * #
+	            (1 - G(q)) + G(q) * (1 - G(p))) * TB(p, q))^B[x, #
+	            6]#
+	    }#
+	    TB <- function(p, q) sum(sapply(1:28, tb, p = p, q = q))#
+	    S <- function(p, q) sum(sapply(1:21, s, p = p, q = q))#
+	    if (bestof3) #
+	        match_win_prob <- S(p, q)^2 * (1 + 2 * (1 - S(p, q)))#
+	    else match_win_prob <- S(p, q)^3 * (1 + 3 * (1 - S(p, q)) + #
+	        6 * (1 - S(p, q))^2)#
+	    ifelse(match_win_prob < 0, 0, ifelse(match_win_prob > 1, #
+	        1, match_win_prob))#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, p - .25, bestof3) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	1 - (result - .25)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, p - .25, bestof3) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	result#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, p - .15, bestof3) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	1 - (result - .15)#
+	}#
+	else{#
+		f <- function(p) match_win(p, p - .15, bestof3) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	result#
+	}#
+}
+player1.serve <- calibrate_serve(win, atp = T, bestof3 = FALSE)#
+player2.serve <- calibrate_serve(1-win, atp = T, bestof3 = FALSE)
+player1.serve
+player2.serve
+mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+head(illustration)
+devtools::install("~/Software/inmatch/")
+quit("no")
+# Example of in-match predictions#
+library(inmatch)#
+data(illustration)#
+illustration <- illustration %>%#
+	group_by(server) %>%#
+	dplyr::mutate(#
+		serve.points.won = c(0, serve.points.won[-n()]),#
+		return.points.won = c(0, return.points.won[-n()]),#
+		serve.points.played = c(0, serve.points.played[-n()]),#
+		return.points.played = c(0, return.points.played[-n()])#
+	)#
+illustration <- illustration[order(illustration$set, illustration$game, illustration$point),]	#
+# Calibrate pre-match serve win probabilities	#
+win <- 0.74#
+#
+player1.serve <- calibrate_serve(win, atp = T, bestof3 = FALSE)#
+player2.serve <- calibrate_serve(1-win, atp = T, bestof3 = FALSE)#
+#
+illustration <- illustration %>%#
+	dplyr::mutate(#
+	servep = ifelse(server == "Djokovic N.", player1.serve, player2.serve),#
+	returnp = ifelse(server == "Djokovic N.", player2.serve, player1.serve)#
+)
+player1.serve
+player2.serve
+mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+mapply(in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+player1.serve <- calibrate_serve(win, atp = T, bestof3 = T)#
+player2.serve <- calibrate_serve(1-win, atp = T, bestof3 = T)
+player1.serve
+player2.serve
+mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+illustration <- illustration %>%#
+	dplyr::mutate(#
+	servep = ifelse(server == "Djokovic N.", player1.serve, player2.serve),#
+	returnp = ifelse(server == "Djokovic N.", player2.serve, player1.serve)#
+)	#
+#
+# Dynamic Ability Prediction#
+mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+head(illustration)
+as.data.frame(head(illustration))
+p0 <- mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)	#
+#
+# Constant Ability Prediction#
+p1 <- mapply(in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+cbind(p1, p0)
+cbind(t(p1), t(p0))
+roxygenise()
+library(roxygen2)
+setwd("~/Software/inmatch/")
+roxygenise()
+devtools::install("~/Software/inmatch/")
+win <- 0.74#
+#
+serve.params <- calibrate_serve(win, atp = T, bestof3 = T)
+serve.params
+serve.params <- calibrate_serve(win, atp = T, bestof3 = F)
+serve.params
+as.data.frame(illustration[1,])
+illustration <- illustration %>%#
+	dplyr::mutate(#
+	servep = ifelse(server == "Djokovic N.", serve.params[1], serve.params[2]),#
+	returnp = ifelse(server == "Djokovic N.", serve.params[2], serve.params[1])#
+)
+p0 <- mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+head(t(p0))
+args(in_match_win)
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE, advantage = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function(p, q)#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = best = bestof3, advantage = advantage)#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, 1 - (p - .15) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE, advantage = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = best = bestof3, advantage = advantage)$win#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, 1 - (p - .15) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE, advantage = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)$win#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, 1 - (p - .15) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE, advantage = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)$win#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+calibrate_serve(win, atp = T, bestof3 = F, advan = T)
+win
+atp <- T
+bestof3 <- F
+advantage <- T
+match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)$win#
+	}
+match_win(0.65, 0.6)
+match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)#
+	}
+match_win(0.65, 0.6)
+match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)$server_win#
+	}
+match_win(0.65, 0.6)
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE, advantage = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)$server_win#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, 1 - (p - .15)) - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+calibrate_serve(win, atp = T, bestof3 = F, advan = T)
+roxygenise()
+devtools::install("~/Software/inmatch/")
+quit("no")
+library(inmatch)#
+#
+data(illustration)#
+#
+illustration <- illustration %>%#
+	group_by(server) %>%#
+	dplyr::mutate(#
+		serve.points.won = c(0, serve.points.won[-n()]),#
+		return.points.won = c(0, return.points.won[-n()]),#
+		serve.points.played = c(0, serve.points.played[-n()]),#
+		return.points.played = c(0, return.points.played[-n()])#
+	)#
+illustration <- illustration[order(illustration$set, illustration$game, illustration$point),]	#
+# Calibrate pre-match serve win probabilities	#
+win <- 0.74#
+#
+serve.params <- calibrate_serve(win, atp = T, bestof3 = F, advan = T)
+illustration <- illustration %>%#
+	dplyr::mutate(#
+	servep = ifelse(server == "Djokovic N.", serve.params[1], serve.params[2]),#
+	returnp = ifelse(server == "Djokovic N.", serve.params[2], serve.params[1])#
+)
+p0 <- mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)	#
+#
+# Constant Ability Prediction#
+p1 <- mapply(in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	MoreArgs = list(bestof3 = FALSE, advantage = FALSE)#
+)
+head(t(p0))
+head(t(p1))
+illustration[1,]
+serve.params
+as.data.frame(illustration[1,])
+calibrate_sere
+calibrate_serve
+p0 <- mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = TRUE)#
+)	#
+#
+# Constant Ability Prediction#
+p1 <- mapply(in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	MoreArgs = list(bestof3 = FALSE, advantage = TRUE)#
+)
+head(t(p0))
+head(t(p1))
+in_match_win(0, 0, 0, 0, 0, 0, serve.params[1], serve.params[2], F, F)
+in_match_win(0, 0, 0, 0, 0, 0, serve.params[1], serve.params[2], F, T)
+in_match_win(0, 0, 0, 0, 0, 0, serve.params[1], serve.params[2], T, T)
+in_match_win(0, 0, 0, 0, 0, 0, serve.params[1], serve.params[2], T, F)
+bestof3 <- F
+advantage <- T
+match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, best = bestof3, advantage = advantage)$server_win#
+	}
+win
+atp
+f <- function(p) match_win(p, 1 - (p - .25)) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)
+serve.paras
+serve.params
+calibrate_serve(win, T, F, T)
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE, advantage = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function(p, q, bestof3, advantage){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, bestof3 = bestof3, advantage = advantage)$server_win#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25), bestof3, advantage) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, 1 - (p - .25), bestof3, advantage)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, 1 - (p - .15), bestof3, advantage)  - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, 1 - (p - .15), bestof3, advantage)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+calibrate_serve(win, T, F, T)
+match_win(p, 1 - (p - .25), bestof3, advantage)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))
+serve.params
+match_win(p, 1 - (p - .25), F, T)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))
+serve.params
+match_win
+match_win <- function(p, q, bestof3, advantage){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, bestof3 = bestof3, advantage = advantage)$server_win#
+	}
+match_win(p, 1 - (p - .25), F, T)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))
+f <- function(p) match_win(p, 1 - (p - .25), bestof3, advantage)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))
+serve.params
+bestof3
+advantage
+match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, bestof3 = bestof3, advantage = advantage)$server_win#
+	}
+f <- function(p) match_win(p, 1 - (p - .25))  - win
+f
+f(0.6450988)
+uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA
+uniroot(f, interval = c(0.5, 1))$root
+uniroot(f, interval = c(0.5, 1))
+?uniroot
+uniroot(f)
+uniroot(f, c(0, 1))
+match_win(p, 1 - (p - .25))
+match_win(serve.params[1], 1 - (serve.params[1] - .25))
+serve.params
+f <- function(p) match_win(p, 1 - (p - .15))  - win
+uniroot(f, interval = c(0.5, 1))
+?uniroot
+f
+curve(f, 0.5, 1)
+f(0.5)
+f <- Vectorize(f)
+curve(f, 0.5, 1)
+f(0.6)
+f(0.61)
+f(0.59)
+f(0.60)
+f(0.595)
+?uniroot
+f <- function(p) match_win(p, 1 - (p - .25))  - win
+uniroot(f, interval = c(0.6, 0.7))
+uniroot(f, interval = c(0.55, 0.65))
+uniroot(f, interval = c(0.55, 0.65), iter = 500)
+?uniroot
+.Machine$double.eps^0.25
+uniroot(f, interval = c(0.55, 0.65), tol = 10^-6)
+?uniroot
+?polyroot
+install.packages("rootSolve")
+library(rootSolve)
+help(package = rootSolve)
+uniroot.all(f, c(0.5, 1))
+f
+uniroot.all(f, lower = 0.5, upper = 0.9)
+?uniroot.all
+f <- Vectorize(f)
+uniroot.all(f, lower = 0.5, upper = 0.9)
+serve.params
+uniroot.all(f, lower = 0.59, upper = 0.61)
+uniroot.all(f, lower = 0.59, upper = 0.64)
+win
+match_win(0.6450644, 1 - (0.6450644 - 0.25))
+curve(f, 0.5, 1)
+abline(v = 0)
+abline(h = 0)
+abline(v = 0.6450644)
+win
+rm(win)
+f(0.5)
+match_win( 0.6450644, 1 - (0.6450644 - .25))
+match_win
+bestof3
+advantage
+in_match_win(0, 0, 0, 0, 0, 0, server = 0.6450644, returner = 1 - (0.6450644 - .25), bestof3 = bestof3, advantage = advantage)
+in_match_win(0, 0, 0, 0, 0, 0, server = 0.6450644, returner = 1 - (0.6450644 - .25), bestof3 = F, advantage = F)
+in_match_win(0, 0, 0, 0, 0, 0, server = 0.6450644, returner = 1 - (0.6450644 - .25), bestof3 = T, advantage = F)
+f(c(0.6, 0.61, 0.62, 0.63, 0.64, 0.65))
+win <- 0.7885
+f(c(0.6, 0.61, 0.62, 0.63, 0.64, 0.65))
+f(c(0.6, 0.61, 0.62, 0.63, 0.64, 0.65)
+)
+win
+f <- function(p) match_win(p, 1 - (p - .25))  - win
+uniroot(f, interval = c(0.5, 1))
+win <- 0.74
+uniroot(f, interval = c(0.5, 1))
+f <- function(p) match_win(p, 1 - (p - .25))  - win
+uniroot(f, interval = c(0.5, 1))
+win <- 0.75
+uniroot(f, interval = c(0.5, 1))
+?rootSolve
+function(x) model = c(match_win(x[1], x[2]) - win, match_win(x[2], x[2]) - (1 - win)
+)
+function(x) c(match_win(x[1], x[2]) - win, match_win(x[2], x[1]) - (1 - win))
+g <- function(x) c(match_win(x[1], x[2]) - win, match_win(x[2], x[1]) - (1 - win))
+multiroot(f = g, start = c(0.6, 0.5))
+multiroot(f = g, start = c(0.6, 0.6))
+multiroot(f = g, start = c(0.65, 0.6))
+f
+win
+f <- Vectorize(f)
+curve(f, 0.5, 0.7)
+uniroot(f, interval = c(0.5, 1))
+abline(h = 0.6450043)
+abline(v = 0.6450043)
+f(0.644)
+f(0.646)
+match_win <- function (serve, return, bestof3 = TRUE) #
+	{#
+	    p <- serve#
+	    q <- return#
+	    A <- c(1, 3, 0, 4, 0, 0, 3, 3, 1, 4, 0, 0, 4, 4, 0, 3, 1, #
+	        0, 6, 3, 2, 4, 0, 0, 16, 4, 1, 3, 1, 0, 6, 5, 0, 2, 2, #
+	        0, 10, 2, 3, 5, 0, 0, 40, 3, 2, 4, 1, 0, 30, 4, 1, 3, #
+	        2, 0, 4, 5, 0, 2, 3, 0, 5, 1, 4, 6, 0, 0, 50, 2, 3, 5, #
+	        1, 0, 100, 3, 2, 4, 2, 0, 50, 4, 1, 3, 3, 0, 5, 5, 0, #
+	        2, 4, 0, 1, 1, 5, 6, 0, 0, 30, 2, 4, 5, 1, 0, 150, 3, #
+	        3, 4, 2, 0, 200, 4, 2, 3, 3, 0, 75, 5, 1, 2, 4, 0, 6, #
+	        6, 0, 1, 5, 0, 1, 0, 6, 6, 0, 1, 36, 1, 5, 5, 1, 1, 225, #
+	        2, 4, 4, 2, 1, 400, 3, 3, 3, 3, 1, 225, 4, 2, 2, 4, 1, #
+	        36, 5, 1, 1, 5, 1, 1, 6, 0, 0, 6, 1)#
+	    A <- matrix(A, byrow = TRUE, ncol = 6)#
+	    B <- c(1, 3, 0, 3, 0, 0, 3, 3, 1, 3, 0, 0, 3, 4, 0, 2, 1, #
+	        0, 6, 2, 2, 4, 0, 0, 12, 3, 1, 3, 1, 0, 3, 4, 0, 2, 2, #
+	        0, 4, 2, 3, 4, 0, 0, 24, 3, 2, 3, 1, 0, 24, 4, 1, 2, #
+	        2, 0, 4, 5, 0, 1, 3, 0, 5, 1, 4, 5, 0, 0, 40, 2, 3, 4, #
+	        1, 0, 60, 3, 2, 3, 2, 0, 20, 4, 1, 2, 3, 0, 1, 5, 0, #
+	        1, 4, 0, 1, 0, 5, 5, 0, 1, 25, 1, 4, 4, 1, 1, 100, 2, #
+	        3, 3, 2, 1, 100, 3, 2, 2, 3, 1, 25, 4, 1, 1, 4, 1, 1, #
+	        5, 0, 0, 5, 1)#
+	    B <- matrix(B, byrow = TRUE, ncol = 6)#
+	    G <- function(x) x^4 * (15 - 4 * x - (10 * x^2)/(1 - 2 * #
+	        x * (1 - x)))#
+	    tb <- function(x, p, q) {#
+	        D <- p * q/(1 - (p * (1 - q) + (1 - p) * q))#
+	        A[x, 1] * p^A[x, 2] * (1 - p)^A[x, 3] * q^A[x, 4] * (1 - #
+	            q)^A[x, 5] * D^A[x, 6]#
+	    }#
+	    s <- function(x, p, q) {#
+	        B[x, 1] * G(p)^B[x, 2] * (1 - G(p))^B[x, 3] * G(q)^B[x, #
+	            4] * (1 - G(q))^B[x, 5] * (G(p) * G(q) + (G(p) * #
+	            (1 - G(q)) + G(q) * (1 - G(p))) * TB(p, q))^B[x, #
+	            6]#
+	    }#
+	    TB <- function(p, q) sum(sapply(1:28, tb, p = p, q = q))#
+	    S <- function(p, q) sum(sapply(1:21, s, p = p, q = q))#
+	    if (bestof3) #
+	        match_win_prob <- S(p, q)^2 * (1 + 2 * (1 - S(p, q)))#
+	    else match_win_prob <- S(p, q)^3 * (1 + 3 * (1 - S(p, q)) + #
+	        6 * (1 - S(p, q))^2)#
+	    ifelse(match_win_prob < 0, 0, ifelse(match_win_prob > 1, #
+	        1, match_win_prob))#
+	}
+f <- function(p) match_win(p, 1 - (p - .25), FALSE)  - win
+f <- Vectorize(f)
+curve(f, 0.5, 0.7)
+f(0.64)
+f(0.65)
+win
+match_win
+f
+match_win(0.64, (p - .25))
+match_win(0.64, (0.64 - .25))
+f <- function(p) match_win(p, (p - .25), FALSE)  - win
+f <- Vectorize(f)
+curve(f, 0.5, 0.7)
+uniroot(f, interval = c(0.5, 1))
+abline(v = 0.6463315)
+#' Calibrates Serve Probabilities#
+#'#
+#' This function calculates the player expected probability of winning a point on serve given their match win prediction.#
+#'#
+#' @param win Numeric value between 0 and 1 that is the player's expected win percentage#
+#' @param atp Logical indicating whether the match is for the ATP or WTA#
+#' @param bestof3 Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format#
+#' @param bestof3 Logical indicating whether the match has an advantage final set or not#
+#'#
+#' @export#
+calibrate_serve <- function(win, atp = TRUE, bestof3 = TRUE){#
+#
+	# Dependent function that calculates match win from iid model#
+	match_win <- function (serve, return, bestof3 = TRUE) #
+	{#
+	    p <- serve#
+	    q <- return#
+	    A <- c(1, 3, 0, 4, 0, 0, 3, 3, 1, 4, 0, 0, 4, 4, 0, 3, 1, #
+	        0, 6, 3, 2, 4, 0, 0, 16, 4, 1, 3, 1, 0, 6, 5, 0, 2, 2, #
+	        0, 10, 2, 3, 5, 0, 0, 40, 3, 2, 4, 1, 0, 30, 4, 1, 3, #
+	        2, 0, 4, 5, 0, 2, 3, 0, 5, 1, 4, 6, 0, 0, 50, 2, 3, 5, #
+	        1, 0, 100, 3, 2, 4, 2, 0, 50, 4, 1, 3, 3, 0, 5, 5, 0, #
+	        2, 4, 0, 1, 1, 5, 6, 0, 0, 30, 2, 4, 5, 1, 0, 150, 3, #
+	        3, 4, 2, 0, 200, 4, 2, 3, 3, 0, 75, 5, 1, 2, 4, 0, 6, #
+	        6, 0, 1, 5, 0, 1, 0, 6, 6, 0, 1, 36, 1, 5, 5, 1, 1, 225, #
+	        2, 4, 4, 2, 1, 400, 3, 3, 3, 3, 1, 225, 4, 2, 2, 4, 1, #
+	        36, 5, 1, 1, 5, 1, 1, 6, 0, 0, 6, 1)#
+	    A <- matrix(A, byrow = TRUE, ncol = 6)#
+	    B <- c(1, 3, 0, 3, 0, 0, 3, 3, 1, 3, 0, 0, 3, 4, 0, 2, 1, #
+	        0, 6, 2, 2, 4, 0, 0, 12, 3, 1, 3, 1, 0, 3, 4, 0, 2, 2, #
+	        0, 4, 2, 3, 4, 0, 0, 24, 3, 2, 3, 1, 0, 24, 4, 1, 2, #
+	        2, 0, 4, 5, 0, 1, 3, 0, 5, 1, 4, 5, 0, 0, 40, 2, 3, 4, #
+	        1, 0, 60, 3, 2, 3, 2, 0, 20, 4, 1, 2, 3, 0, 1, 5, 0, #
+	        1, 4, 0, 1, 0, 5, 5, 0, 1, 25, 1, 4, 4, 1, 1, 100, 2, #
+	        3, 3, 2, 1, 100, 3, 2, 2, 3, 1, 25, 4, 1, 1, 4, 1, 1, #
+	        5, 0, 0, 5, 1)#
+	    B <- matrix(B, byrow = TRUE, ncol = 6)#
+	    G <- function(x) x^4 * (15 - 4 * x - (10 * x^2)/(1 - 2 * #
+	        x * (1 - x)))#
+	    tb <- function(x, p, q) {#
+	        D <- p * q/(1 - (p * (1 - q) + (1 - p) * q))#
+	        A[x, 1] * p^A[x, 2] * (1 - p)^A[x, 3] * q^A[x, 4] * (1 - #
+	            q)^A[x, 5] * D^A[x, 6]#
+	    }#
+	    s <- function(x, p, q) {#
+	        B[x, 1] * G(p)^B[x, 2] * (1 - G(p))^B[x, 3] * G(q)^B[x, #
+	            4] * (1 - G(q))^B[x, 5] * (G(p) * G(q) + (G(p) * #
+	            (1 - G(q)) + G(q) * (1 - G(p))) * TB(p, q))^B[x, #
+	            6]#
+	    }#
+	    TB <- function(p, q) sum(sapply(1:28, tb, p = p, q = q))#
+	    S <- function(p, q) sum(sapply(1:21, s, p = p, q = q))#
+	    if (bestof3) #
+	        match_win_prob <- S(p, q)^2 * (1 + 2 * (1 - S(p, q)))#
+	    else match_win_prob <- S(p, q)^3 * (1 + 3 * (1 - S(p, q)) + #
+	        6 * (1 - S(p, q))^2)#
+	    ifelse(match_win_prob < 0, 0, ifelse(match_win_prob > 1, #
+	        1, match_win_prob))#
+	}#
+	if(win < .5 & atp){#
+		f <- function(p) match_win(p, (p - .25), bestof3) - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .25), result)#
+	}#
+	else if (win >= 0.5 & atp){#
+		f <- function(p) match_win(p, (p - .25), bestof3)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .25))#
+	}	#
+	else if(win < .5 & !atp)	{#
+		f <- function(p) match_win(p, (p - .15), bestof3)  - (1 - win)#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(1 - (result - .15), result)#
+	}#
+	else{#
+		f <- function(p) match_win(p, (p - .15), bestof3)  - win#
+		result <- tryCatch(uniroot(f, interval = c(0.5, 1))$root, error = function(x) NA)#
+	c(result, 1 - (result - .15))#
+	}#
+}
+calibrate_serve(0.75, atp = T, bestof3 = F)
+in_match_win(0, 0, 0, 0, 0, 0, 0.6463315, 0.6036685, F, T)
+match_win <- function (serve, return, bestof3 = TRUE) #
+	{#
+	    p <- serve#
+	    q <- return#
+	    A <- c(1, 3, 0, 4, 0, 0, 3, 3, 1, 4, 0, 0, 4, 4, 0, 3, 1, #
+	        0, 6, 3, 2, 4, 0, 0, 16, 4, 1, 3, 1, 0, 6, 5, 0, 2, 2, #
+	        0, 10, 2, 3, 5, 0, 0, 40, 3, 2, 4, 1, 0, 30, 4, 1, 3, #
+	        2, 0, 4, 5, 0, 2, 3, 0, 5, 1, 4, 6, 0, 0, 50, 2, 3, 5, #
+	        1, 0, 100, 3, 2, 4, 2, 0, 50, 4, 1, 3, 3, 0, 5, 5, 0, #
+	        2, 4, 0, 1, 1, 5, 6, 0, 0, 30, 2, 4, 5, 1, 0, 150, 3, #
+	        3, 4, 2, 0, 200, 4, 2, 3, 3, 0, 75, 5, 1, 2, 4, 0, 6, #
+	        6, 0, 1, 5, 0, 1, 0, 6, 6, 0, 1, 36, 1, 5, 5, 1, 1, 225, #
+	        2, 4, 4, 2, 1, 400, 3, 3, 3, 3, 1, 225, 4, 2, 2, 4, 1, #
+	        36, 5, 1, 1, 5, 1, 1, 6, 0, 0, 6, 1)#
+	    A <- matrix(A, byrow = TRUE, ncol = 6)#
+	    B <- c(1, 3, 0, 3, 0, 0, 3, 3, 1, 3, 0, 0, 3, 4, 0, 2, 1, #
+	        0, 6, 2, 2, 4, 0, 0, 12, 3, 1, 3, 1, 0, 3, 4, 0, 2, 2, #
+	        0, 4, 2, 3, 4, 0, 0, 24, 3, 2, 3, 1, 0, 24, 4, 1, 2, #
+	        2, 0, 4, 5, 0, 1, 3, 0, 5, 1, 4, 5, 0, 0, 40, 2, 3, 4, #
+	        1, 0, 60, 3, 2, 3, 2, 0, 20, 4, 1, 2, 3, 0, 1, 5, 0, #
+	        1, 4, 0, 1, 0, 5, 5, 0, 1, 25, 1, 4, 4, 1, 1, 100, 2, #
+	        3, 3, 2, 1, 100, 3, 2, 2, 3, 1, 25, 4, 1, 1, 4, 1, 1, #
+	        5, 0, 0, 5, 1)#
+	    B <- matrix(B, byrow = TRUE, ncol = 6)#
+	    G <- function(x) x^4 * (15 - 4 * x - (10 * x^2)/(1 - 2 * #
+	        x * (1 - x)))#
+	    tb <- function(x, p, q) {#
+	        D <- p * q/(1 - (p * (1 - q) + (1 - p) * q))#
+	        A[x, 1] * p^A[x, 2] * (1 - p)^A[x, 3] * q^A[x, 4] * (1 - #
+	            q)^A[x, 5] * D^A[x, 6]#
+	    }#
+	    s <- function(x, p, q) {#
+	        B[x, 1] * G(p)^B[x, 2] * (1 - G(p))^B[x, 3] * G(q)^B[x, #
+	            4] * (1 - G(q))^B[x, 5] * (G(p) * G(q) + (G(p) * #
+	            (1 - G(q)) + G(q) * (1 - G(p))) * TB(p, q))^B[x, #
+	            6]#
+	    }#
+	    TB <- function(p, q) sum(sapply(1:28, tb, p = p, q = q))#
+	    S <- function(p, q) sum(sapply(1:21, s, p = p, q = q))#
+	    if (bestof3) #
+	        match_win_prob <- S(p, q)^2 * (1 + 2 * (1 - S(p, q)))#
+	    else match_win_prob <- S(p, q)^3 * (1 + 3 * (1 - S(p, q)) + #
+	        6 * (1 - S(p, q))^2)#
+	    ifelse(match_win_prob < 0, 0, ifelse(match_win_prob > 1, #
+	        1, match_win_prob))#
+	}
+match_win(0.6463315, 0.6463315 - 0.25)
+match_win(0.6463315, 0.6463315 - 0.25, F)
+match_win <- function(p, q){#
+		in_match_win(0, 0, 0, 0, 0, 0, server = p, returner = q, bestof3 = bestof3, advantage = advantage)$server_win#
+	}
+f <- function(p) match_win(p, 1 - (p - .25))  - win
+uniroot(f, interval = c(0.5, 1))
+f(0.6450043 - 0.001)
+f(0.6450043 + 0.001)
+x <- seq(0.6450043 - 0.001, 0.6450043 + 0.001, length = 200)
+x
+f(x)
+x
+f <- Vectorize(f)
+f(x)
+win <- 0.7
+f <- function(p) match_win(p, 1 - (p - .25))  - win
+uniroot(f, interval = c(0.5, 1))
+match_win(0.6449838, 1 - (0.6449838 - 0.25))
+devtools::install("~/Software/inmatch/")
+quit("no")
+# Example of in-match predictions#
+library(inmatch)#
+#
+data(illustration)#
+#
+illustration <- illustration %>%#
+	group_by(server) %>%#
+	dplyr::mutate(#
+		serve.points.won = c(0, serve.points.won[-n()]),#
+		return.points.won = c(0, return.points.won[-n()]),#
+		serve.points.played = c(0, serve.points.played[-n()]),#
+		return.points.played = c(0, return.points.played[-n()])#
+	)#
+illustration <- illustration[order(illustration$set, illustration$game, illustration$point),]	#
+# Calibrate pre-match serve win probabilities	#
+win <- 0.68#
+#
+serve.params <- calibrate_serve(win, atp = T, bestof3 = F, advan = T)#
+#
+illustration <- illustration %>%#
+	dplyr::mutate(#
+	servep = ifelse(server == "Djokovic N.", serve.params[1], serve.params[2]),#
+	returnp = ifelse(server == "Djokovic N.", serve.params[2], serve.params[1])#
+)	#
+#
+# Dynamic Ability Prediction#
+p0 <- mapply(dynamic_in_match_win,#
+	point_a = illustration$server_points_won,#
+	point_b = illustration$returner_points_won,#
+	game_a = illustration$server_games_won,#
+	game_b = illustration$returner_games_won,#
+	set_a = illustration$server_sets_won,#
+	set_b = illustration$returner_sets_won,#
+	server.prob = illustration$servep,#
+	returner.prob = illustration$returnp,#
+	server.serve.points.won = illustration$serve.points.won,#
+	server.serve.points = illustration$serve.points.played,#
+	returner.serve.points.won = illustration$return.points.won,#
+	returner.serve.points = 	illustration$serve.points.played,#
+	MoreArgs = list(bestof3 = FALSE, advantage = TRUE)#
+)
+p0[,1]
+save(illustration, file = "~/Software/inmatch/data/illustration.RData")
+library(devtools)
+devtools::install("~/Software/inmatch/")
+library(gigweb)#
+#
+data("atp_pbp") # Find match#
+data("atp_elo_rankings")#
+#
+today <- Sys.Date()#
+#
+atp_pbp <- atp_pbp %>% dplyr::filter(!retired)#
+#
+recent <- atp_pbp %>%#
+	group_by(matchid) %>%#
+    dplyr::summarise(#
+    	tourney_name = tourney_name[1],#
+        tourney_level = tourney_level[1],#
+        match_date = match_date[1]#
+    )#
+#
+recent <- recent[order(recent$match_date, decreasing = T),][1,]#
+#
+i <- 1#
+match <- atp_pbp %>% dplyr::filter(matchid == recent$matchid[i], winner)#
+match$player <- player_names(match$player, atp_elo_rankings$Player)#
+#
+match$winner_name <- player_names(match$winner_name, atp_elo_rankings$Player)#
+#
+match$loser_name <- player_names(match$loser_name, atp_elo_rankings$Player)#
+#
+match$left_player <- player_names(match$left_player, atp_elo_rankings$Player)    #
+#
+match$right_player <- player_names(match$right_player, atp_elo_rankings$Player)#
+#
+match$server <- player_names(match$server, atp_elo_rankings$Player)#
+#
+winner_elo <- subset(atp_elo_rankings, Player == match$winner_name[1])$Elo#
+#
+loser_elo <- subset(atp_elo_rankings, Player == match$loser_name[1])$Elo
+winner_elo
+loser_elo
+win_prediction <- elo_prediction(as.numeric(winner_elo), as.numeric(loser_elo))
+calibrate_serve
+data <- atp_pbp %>% dplyr::filter(matchid == recent$matchid[i], winner)#
+data$player <- player_names(data$player, atp_elo_rankings$Player)#
+#
+data$winner_name <- player_names(data$winner_name, atp_elo_rankings$Player)#
+#
+data$loser_name <- player_names(data$loser_name, atp_elo_rankings$Player)#
+#
+data$left_player <- player_names(data$left_player, atp_elo_rankings$Player)    #
+#
+data$right_player <- player_names(data$right_player, atp_elo_rankings$Player)#
+#
+data$server <- player_names(data$server, atp_elo_rankings$Player)#
+#
+winner_elo <- subset(atp_elo_rankings, Player == data$winner_name[1])$Elo#
+#
+loser_elo <- subset(atp_elo_rankings, Player == data$loser_name[1])$Elo#
+if(length(winner_elo) == 0)#
+    	winner_elo <- 1500#
+#
+if(length(loser_elo) == 0)#
+    	loser_elo <- 1500
+win <- elo_prediction(as.numeric(winner_elo), as.numeric(loser_elo))#
+	elo_adjusted_serve_estimate <- calibrate_serve(win, atp)#
+	player2_elo_adjusted_estimate <- calibrate_serve(1 - win, atp)
+elo_adjusted_serve_estimate <- calibrate_serve(win, T)#
+	player2_elo_adjusted_estimate <- calibrate_serve(1 - win, T)#
+	data <- data[order(data$set, data$game, data$point),]#
+	data$serve_label <- paste(data$server, "Serving")
+elo_adjusted_serve_estimate
+data$serve_label <- paste(data$server, "Serving")#
+#
+	data$server_score <- ifelse(data$left_serving, data$left_score, data$right_score)#
+	data$returner_score <- ifelse(data$left_serving, data$right_score, data$left_score)#
+	data$server_score[data$point == 1] <- "0"#
+	data$returner_score[data$point == 1] <- "0"#
+#
+	data <- data %>%#
+	group_by(set, game) %>%#
+	dplyr::mutate(#
+		left_score = c(0, left_score[-1]),#
+		right_score = c(0, right_score[-1])#
+	)#
+	data$ServeIndicator <- ifelse(data$server == player1, 1, 2)#
+	data$ServeProb <- ifelse(data$server == player1, elo_adjusted_serve_estimate, player2_elo_adjusted_estimate)#
+	data$ReturnServeProb <- ifelse(data$server != player1, elo_adjusted_serve_estimate, player2_elo_adjusted_estimate)#
+	data$Player1ServeWon <- c(0, cumsum(data$server_won & data$ServeIndicator == 1)[-nrow(data)])#
+	data$Player2ServeWon <- c(0, cumsum(data$server_won & data$ServeIndicator == 2)[-nrow(data)])#
+#
+	data$Player1ServePoints <- c(0, cumsum(data$ServeIndicator == 1)[-nrow(data)])#
+	data$Player2ServePoints <- c(0, cumsum(data$ServeIndicator == 2)[-nrow(data)])#
+#
+	data$ServerServeWon <- ifelse(data$ServeIndicator == 1, data$Player1ServeWon, data$Player2ServeWon)#
+	data$ReturnerServeWon <- ifelse(data$ServeIndicator == 2, data$Player1ServeWon, data$Player2ServeWon)#
+	data$ServerServePoints <- ifelse(data$ServeIndicator == 1, data$Player1ServePoints, data$Player2ServePoints)#
+	data$ReturnerServePoints <- ifelse(data$ServeIndicator == 2, data$Player1ServePoints, data$Player2ServePoints)
+rm(list = ls())
+quit("no")

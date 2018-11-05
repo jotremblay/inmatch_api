@@ -4,12 +4,16 @@
 \alias{elo_lookup}
 \title{Current Elo}
 \usage{
-elo_lookup(id, mens)
+elo_lookup(id1, id2 = NULL, mens, default = 1300)
 }
 \arguments{
-\item{id}{Character id of player}
+\item{id1}{Character id of player 1}
+
+\item{id2}{Character id of player 2 (if doubles)}
 
 \item{mens}{Logical if mens or womens match}
+
+\item{default}{Numerical rating used when ID not found}
 }
 \value{
 Numeric elo value

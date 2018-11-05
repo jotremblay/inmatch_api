@@ -16,7 +16,7 @@
 #' @param player2.serve.prob Player expected probability of winning on serve from \code{get_baseline}
 #' @param player1.won Logical (TRUE or FALSE) whether player 1 won the current point
 #' @param player1.serving Logical (TRUE or FALSE) whether player 1 served the current point
-#' @param format. Character description of match format ('bestof3', 'laver', 'bestof5')
+#' @param format. Character description of match format ('bestof3', 'laver', 'bestof5', 'doubles')
 #'
 #' @return data frame of player 1 and player 2 win probs
 #'
@@ -38,11 +38,12 @@ get_win_prob <- function(
 		player1.won,
 		player1.serving = T,
 		format){
-	
-	
+		
 			if(player1.serving){
 				if(format == "laver")
 				score <- update_score_laver(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets)
+				else if(format == "doubles")
+				score <- update_score_doubles(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets)
 				else
 				score <- update_score(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets, bestof = format == "bestof3")	
 					
@@ -50,13 +51,12 @@ get_win_prob <- function(
 			else{
 				if(format == "laver")
 				score <- update_score_laver(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets)
+				else if(format == "doubles")
+				score <- update_score_doubles(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets)
 				else
 				score <- update_score(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets,  bestof = format == "bestof3")
 				
 			}
-			
-			#print(score)
-		
 			
 			# Adjust erroneous set scores
 			if(format != "bestof5" & (score$seta + score$setb) > 2){
@@ -194,7 +194,6 @@ get_win_prob <- function(
 				values <- c(as.numeric(winprob[1,]), as.numeric(winprob[2,]))
 				
 				names(values) <- paste(rep(c("player1","player2"), each = 4), names(winprob), sep = ".")
-				
-					
+						
 paste(paste(names(values), values, sep = ':'), collapse = ",", sep = "")
 }

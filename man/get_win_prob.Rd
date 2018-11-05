@@ -38,7 +38,7 @@ get_win_prob(player1.score, player2.score, player1.games, player2.games,
 
 \item{player1.serving}{Logical (TRUE or FALSE) whether player 1 served the current point}
 
-\item{format.}{Character description of match format ('bestof3', 'laver', 'bestof5')}
+\item{format.}{Character description of match format ('bestof3', 'laver', 'bestof5', 'doubles')}
 }
 \value{
 data frame of player 1 and player 2 win probs

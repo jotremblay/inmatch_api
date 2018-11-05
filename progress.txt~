@@ -1,0 +1,8 @@
+[inmatch_api]
+
+- Make serve updating to give 25% weight when 50 points on serve is reached
+- Singles update 
+	- expand player ids for men
+	- expand player ids for women
+	- add doubles elo data.frame/check ids
+- Doubles update

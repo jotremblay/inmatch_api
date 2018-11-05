@@ -4,16 +4,16 @@
 \alias{calibrate_serve}
 \title{Calibrates Serve Probabilities}
 \usage{
-calibrate_serve(win, player_id, opponent_id, bestof3 = TRUE)
+calibrate_serve(win, player.serve, opponent.serve, bestof3 = TRUE)
 }
 \arguments{
 \item{win}{Numeric value between 0 and 1 that is the player's expected win percentage}
 
-\item{player_id}{Character id of player}
-
-\item{opponent_id}{Character id of opponent}
-
 \item{bestof3}{Logical indicating whether the match is a best of 3 (TRUE) or best of 5 (FALSE) format}
+
+\item{player.serve.}{Numerical expected serve}
+
+\item{opponent.serve.}{Numerical expected serve}
 }
 \description{
 Returns the expected probability of player given that player's win expectations

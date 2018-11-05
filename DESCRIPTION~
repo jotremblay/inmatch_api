@@ -1,0 +1,13 @@
+Package: inmatch
+Type: Package
+Title: Dynamic In-Match Prediction
+Version: 0.3
+Date: 2017-8-31
+Author: Stephanie Kovalchik
+Maintainer: Stephanie Kovalchik <skovalchik@tennis.com.au>
+Description: Functions for dynamic in-match win prediction
+Depends:
+    dplyr,
+    R (>= 3.2.0)
+License: GPL
+RoxygenNote: 6.0.1

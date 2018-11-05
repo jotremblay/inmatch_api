@@ -31,7 +31,7 @@ dynamic_in_match_win(point_a, point_b, game_a, game_b, set_a, set_b,
 
 \item{returner.serve.points}{Numeric total service points played in match up to current point}
 
-\item{format}{Character and one of ('bestof3', 'laver', or 'bestof5')}
+\item{format}{Character and one of ('bestof3', 'laver', 'bestof5', 'doubles')}
 
 \item{return.prob}{Numeric serve win prob of current returner}
 }
