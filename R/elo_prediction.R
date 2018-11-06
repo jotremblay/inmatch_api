@@ -15,6 +15,8 @@ elo_prediction <- function(rating1, rating2){
 	
 	rating_diff <- rating2 - rating1
 	
-1 / (1 + 10^(rating_diff / 400))
+	pred <- 1 / (1 + 10^(rating_diff / 400))
+	
+pred + 0.1 * (0.5 - pred)
 }
 

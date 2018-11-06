@@ -1,6 +1,3 @@
-library(ggplot2)
-library(ggthemes)
-library(dplyr)
 library(inmatch)
 
 men <- c(
