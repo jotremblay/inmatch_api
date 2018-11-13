@@ -2,7 +2,7 @@
 % Please edit documentation in R/update_score.R
 \name{update_score}
 \alias{update_score}
-\title{Update Score}
+\title{Update Score with Advantage Final Set}
 \usage{
 update_score(pointa, pointb, gamea, gameb, seta, setb, bestof3 = T)
 }
@@ -24,5 +24,5 @@ update_score(pointa, pointb, gamea, gameb, seta, setb, bestof3 = T)
 \item{set_b}{Numeric sets won by current returner}
 }
 \description{
-Check score change based on result of current point
+Check score change based on result of current point and return score in terms of serving player of the previous point
 }

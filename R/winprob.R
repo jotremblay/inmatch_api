@@ -38,108 +38,50 @@ get_win_prob <- function(
 		player1.won,
 		player1.serving = T,
 		format){
-		
-			if(player1.serving){
-				if(format == "laver")
-				score <- update_score_laver(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets)
-				else if(format == "doubles")
-				score <- update_score_doubles(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets)
-				else
-				score <- update_score(player1.score + as.numeric(player1.won), player2.score + as.numeric(!player1.won), player1.games, player2.games, player1.sets, player2.sets, bestof = format == "bestof3")	
-					
-			}
-			else{
-				if(format == "laver")
-				score <- update_score_laver(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets)
-				else if(format == "doubles")
-				score <- update_score_doubles(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets)
-				else
-				score <- update_score(player2.score + as.numeric(!player1.won), player1.score + as.numeric(player1.won), player2.games, player1.games, player2.sets, player1.sets,  bestof = format == "bestof3")
-				
-			}
 			
-			# Adjust erroneous set scores
-			if(format != "bestof5" & (score$seta + score$setb) > 2){
-					score$seta <- 1
-					score$setb <- 1
-				}
-				
-			if(format == "bestof5" & (score$seta + score$setb) > 4){
-					score$seta <- 2
-					score$setb <- 2
-				}			
-				
 			
-			if(score$serve.changed) 
-				player1.serving <- !player1.serving
+			if(format == "doubles") format <- "bestof3"
 			
-			if(player1.serving){
-
-				if(score$serve.changed) # Reverse score to be in terms of server
-					player1.win <- dynamic_in_match_win(
-						point_a = score$pointb,
-						point_b = score$pointa,
-						game_a = score$gameb,
-						game_b = score$gamea,
-						set_a = score$setb,
-						set_b = score$seta,
-						server.prob = player1.serve.prob,
-						returner.prob =  player2.serve.prob,
-						server.serve.points.won = player1.serve.won,
-						server.serve.points = player1.serve.points,
-						returner.serve.points.won = player2.serve.won,
-						returner.serve.points = player2.serve.points,
-						format = format
-					)
-				else
-					player1.win <- dynamic_in_match_win(
-						point_a = score$pointa,
-						point_b = score$pointb,
-						game_a = score$gamea,
-						game_b = score$gameb,
-						set_a = score$seta,
-						set_b = score$setb,
-						server.prob = player1.serve.prob,
-						returner.prob =  player2.serve.prob,
-						server.serve.points.won = player1.serve.won,
-						server.serve.points = player1.serve.points,
-						returner.serve.points.won = player2.serve.won,
-						returner.serve.points = player2.serve.points,
-						format = format
-					)					
-					
-				player1.win$server_win[player1.win$server_win < 0.01] <- 0.01
-				player1.win$server_win[player1.win$server_win > 0.99] <- 0.99
-											
-				winprob <- data.frame(
-					win.prob = c(player1.win$server_win, 1 - player1.win$server_win),
-					win.prob.point.won = c(player1.win$server_win_if_point_won, 1 - player1.win$server_win_if_point_lost),
-					win.prob.point.lost = c(player1.win$server_win_if_point_lost, 1 - player1.win$server_win_if_point_won)
+			if(player1.serving)
+				score <- update_score(
+					pointa = player1.score + as.numeric(player1.won), 
+					pointb = player2.score + as.numeric((1 - player1.won)), 
+					gamea = player1.games, 
+					gameb = player2.games, 
+					seta = player1.sets, 
+					setb = player2.sets, 
+					bestof3 = format == "bestof3"
 				)
+			else
+				score <- update_score(
+					pointa = player2.score + as.numeric((1 - player1.won)), 
+					pointb = player1.score + as.numeric(player1.won), 
+					gamea = player2.games, 
+					gameb = player1.games, 
+					seta = player2.sets, 
+					setb = player1.sets, 
+					bestof3 = format == "bestof3"
+				)
+		
 				
-				winprob$importance <- winprob$win.prob.point.won - winprob$win.prob.point.lost	
-				
-			}
-			else{
-				
-				if(score$serve.changed)
-					player2.win <- dynamic_in_match_win(
-						point_a = score$pointb,
-						point_b = score$pointa,
-						game_a = score$gameb,
-						game_b = score$gamea,
-						set_a = score$setb,
-						set_b = score$seta,
-						server.prob = player2.serve.prob,
-						returner.prob =  player1.serve.prob,
-						server.serve.points.won = player2.serve.won,
-						server.serve.points = player2.serve.points,
-						returner.serve.points.won = player1.serve.won,
-						returner.serve.points = player1.serve.points,								
+			if((player1.serving & !score$serve.changed) | (!player1.serving & score$serve.changed))
+				values <- dynamic_in_match_win(
+						point_a = score$pointa,
+						point_b = score$pointb,
+						game_a = score$gamea,
+						game_b = score$gameb,
+						set_a = score$seta,
+						set_b = score$setb,
+						server.prob = player1.serve.prob,
+						returner.prob =  player2.serve.prob,
+						server.serve.points.won = player1.serve.won,
+						server.serve.points = player1.serve.points,
+						returner.serve.points.won = player2.serve.won,
+						returner.serve.points = player2.serve.points,
 						format = format
-					)				
-				else
-					player2.win <- dynamic_in_match_win(
+					)							
+			else
+				values <- 1 - dynamic_in_match_win(
 						point_a = score$pointa,
 						point_b = score$pointb,
 						game_a = score$gamea,
@@ -151,49 +93,12 @@ get_win_prob <- function(
 						server.serve.points.won = player2.serve.won,
 						server.serve.points = player2.serve.points,
 						returner.serve.points.won = player1.serve.won,
-						returner.serve.points = player1.serve.points,								
+						returner.serve.points = player1.serve.points,
 						format = format
 					)	
 					
-				player2.win$server_win[player2.win$server_win < 0.01] <- 0.01
-				player2.win$server_win[player2.win$server_win > 0.99] <- 0.99
-				
-				winprob <- data.frame(
-					win.prob = c(1 - player2.win$server_win, player2.win$server_win),
-					win.prob.point.won = c(1 - player2.win$server_win_if_point_lost,  player2.win$server_win_if_point_won),
-					win.prob.point.lost = c(1 - player2.win$server_win_if_point_won,  player2.win$server_win_if_point_lost)
-				)		
-			
-				winprob$importance <- winprob$win.prob.point.won - winprob$win.prob.point.lost
-			}
-			
-				
-				if(winprob[1,"win.prob.point.lost"] > winprob[1,"win.prob"] | winprob[1,"win.prob.point.won"] < winprob[1,"win.prob"]){
-					winprob[1,"win.prob.point.lost"] <- winprob[1,"win.prob"] - winprob$importance[1]/2
-					
-					winprob[1,"win.prob.point.won"] <- winprob[1,"win.prob"] + winprob$importance[1]/2
-				}
-				
-				
-				if(winprob[2,"win.prob.point.lost"] > winprob[2,"win.prob"] | winprob[2,"win.prob.point.won"] < winprob[2,"win.prob"]){
-					winprob[2,"win.prob.point.lost"] <- winprob[2,"win.prob"] - winprob$importance[2]/2
-					
-					winprob[2,"win.prob.point.won"] <- winprob[2,"win.prob"] + winprob$importance[2]/2
-				}
-						
-				formatting <- function(x) round(x * 100, 1)
-				
-				winprob$win.prob <- formatting(winprob$win.prob)
-				winprob$win.prob.point.won <- formatting(winprob$win.prob.point.won)
-				winprob$win.prob.point.lost <- formatting(winprob$win.prob.point.lost)
-				winprob$importance <- formatting(winprob$importance)
-				
-				player1 <- winprob[1,]
-				player2 <- winprob[2,]
-				
-				values <- c(as.numeric(winprob[1,]), as.numeric(winprob[2,]))
-				
-				names(values) <- paste(rep(c("player1","player2"), each = 4), names(winprob), sep = ".")
+				values <- formatC(c(values, 1 - values) * 100, dig = 1, format = "f")
+				names(values) <- c("player1", "player2")
 						
 paste(paste(names(values), values, sep = ':'), collapse = ",", sep = "")
 }

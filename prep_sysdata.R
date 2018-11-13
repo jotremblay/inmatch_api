@@ -126,6 +126,7 @@ oncourt_replace <- structure(c("NIKALA SCHOLTZ", "PATRIK BRYDOLF", "SUDANWA SITA
 
 
 for(i in names(oncourt_replace)){
+	print(i)
 	player_names$name[player_names$name == i] <- oncourt_replace[i]
 }
 
@@ -158,7 +159,7 @@ replace <- structure(c("TEYMURAZ GABASHVILI", "ANDREEV A", "JO WILFRIED TSONGA",
 "PIERRE HUGUES HERBERT", "JAN LENNARD STRUFF", "PABLO CARRENO BUSTA", 
 "NAGAL S", "PURCELL M", "LLOYD GEORGE MUIRHEAD HARRIS", "KWON S", 
 "WATANUKI Y", "HURKACZ H", "MOUTET C", "HUMBERT U", "AUGER ALIASSIME F", 
-"POPYRIN A", "BENCHETRIT E", "CARUANA L", "PIROS Z", "CLARKE J", 
+"POPYRIN A", "BENCHETRIT E", "CARUANA L", "PIROS Z", "CLARK E", 
 "CLARKE J", "MOLLEKER R", "KECMANOVIC M", "GERASIMOV E", "SAKETH MYNENI", 
 "JANVIER M", "BAI M", "AREVALO M", "KOLAR Z", "TSENG C", "LPEZ F",  "DUMHUR D"), .Names = c("TEIMURAZ GABASHVILI", 
 "IGOR ANDREEV", "JOWILFRIED TSONGA", "YENHSUN LU", "PAULHENRI MATHIEU", 
@@ -179,6 +180,7 @@ replace <- structure(c("TEYMURAZ GABASHVILI", "ANDREEV A", "JO WILFRIED TSONGA",
 
 
 for(i in replace){
+    print(i)
 	atp_elo$name[atp_elo$name == i] <- names(replace)[replace == i]
 }
 
@@ -192,8 +194,7 @@ replace <- structure(c("STEPHANIE FORETZ GACON", "KIMIKO DATE KRUMM", "BARBORA Z
 "VALERIA SOLOVIEVA", "YING YING DUAN", "CRISTINA ANDREEA MITU", 
 "JIL BELEN TEICHMANN", "WALLACE I", "KARMAN THANDI", "DANILOVIC O", 
 "KAI LIN ZHANG", "ANNA LENA FRIEDSAM", "YI FAN XU", "KOSTYUK M", "GRGES J", 
-"BETHANIE MATTEK SANDS", "SORANA MIHAELA CIRSTEA", "MIRJANA LUCIC BARONI", "MARIANA DUQUE MARINO"
-), .Names = c("STEPHANIE FORETZ", "KIMIKO DATE", "BARBORA STRYCOVA", 
+"BETHANIE MATTEK SANDS", "SORANA MIHAELA CIRSTEA", "MIRJANA LUCIC BARONI", "MARIANA DUQUE MARINO", "CATHERINE CARTAN BELLIS", "DANIELLE ROSE COLLINS"), .Names = c("STEPHANIE FORETZ", "KIMIKO DATE", "BARBORA STRYCOVA", 
 "SUWEI HSIEH", "LOURDES DOMINGUEZLINO", "KATERYNA BONDARENKO", 
 "HAOCHEN TANG", "KAICHEN CHANG", "SORA LEE", "ANNA SCHMIEDLOVA", 
 "ANSOPHIE MESTACH", "IRINACAMELIA BEGU", "LESYA TSURENKO", "IOANA LOREDANA ROSCA", 
@@ -201,9 +202,10 @@ replace <- structure(c("STEPHANIE FORETZ GACON", "KIMIKO DATE KRUMM", "BARBORA Z
 "CHIARA SCHOLL", "NICOLETA DASCALU", "CHINGWEN HSU", "VALERIYA SOLOVYEVA", 
 "YINGYING DUAN", "CRISTINA MITU", "JIL TEICHMANN", "ISABELLE WALLACE", 
 "KARMAN KAUR THANDI", "OLGA DANILOVIC", "KAILIN ZHANG", "ANNALENA FRIEDSAM", 
-"YIFAN XU", "MARTA KOSTYUK", "JULIA GOERGES", "BETHANIE MATTEKSANDS", "SORANA CIRSTEA", "MIRJANA LUCICBARONI", "MARIANA DUQUEMARINO"))
+"YIFAN XU", "MARTA KOSTYUK", "JULIA GOERGES", "BETHANIE MATTEKSANDS", "SORANA CIRSTEA", "MIRJANA LUCICBARONI", "MARIANA DUQUEMARINO", "CATHERINE BELLIS",  "DANIELLE COLLINS"))
 
 for(i in replace){
+	print(i)
 	wta_elo$name[wta_elo$name == i] <- names(replace)[replace == i]
 }
 
@@ -211,6 +213,8 @@ for(i in replace){
 # Top 150 check
 top150 <- atp_elo[1:150,] %>%
 	left_join(players %>% filter(tour == "ATP"), by = "name")
+	
+top150[is.na(top150$playerid),]	
 
 top150 <- wta_elo[1:150,] %>%
 	left_join(players %>% filter(tour != "ATP"), by = "name")
@@ -219,10 +223,13 @@ top150 <- (atp_elo_doubles %>%
 	 arrange(-elo))[1:150,] %>%
 	left_join(doubles_players %>% filter(tour == "ATP"), by = "name") 
 
+top150[is.na(top150$playerid),]	
+
 top150 <- (wta_elo_doubles %>% 
 	 arrange(-elo))[1:150,] %>%
-	left_join(doubles_players %>% filter(tour == "ATP"), by = "name") 
+	left_join(doubles_players %>% filter(tour != "ATP"), by = "name") 
 
+top150[is.na(top150$playerid),]	
 
 # Assign IDs to elo ratings
 atp_elo <- atp_elo %>% 
