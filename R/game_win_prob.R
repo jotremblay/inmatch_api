@@ -17,6 +17,7 @@ game_win_prob <- function(point_a, point_b, win_game, is.regular.tiebreak, matri
 	           	(a + b) %% 4  %in% c(0, 3)
             	# Cases where point score determines game outcome
             	
+                   	
            	if(point_a >= 4 & (point_a - point_b) >= 2 & !is.regular.tiebreak)
            				part1 <- ifelse(win_game, 1, 0)
 			else if(point_b >= 4 & (point_b - point_a) >= 2  & !is.regular.tiebreak)
@@ -51,3 +52,4 @@ game_win_prob <- function(point_a, point_b, win_game, is.regular.tiebreak, matri
                 1), (point_b + 1)]
 part1
 }
+

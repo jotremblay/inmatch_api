@@ -62,9 +62,10 @@ get_win_prob <- function(
 					setb = player1.sets, 
 					bestof3 = format == "bestof3"
 				)
-		
 				
-			if((player1.serving & !score$serve.changed) | (!player1.serving & score$serve.changed))
+			
+			if((player1.serving & !score$serve.changed) | (!player1.serving & score$serve.changed)){
+				
 				values <- dynamic_in_match_win(
 						point_a = score$pointa,
 						point_b = score$pointb,
@@ -79,8 +80,10 @@ get_win_prob <- function(
 						returner.serve.points.won = player2.serve.won,
 						returner.serve.points = player2.serve.points,
 						format = format
-					)							
-			else
+					)
+				}							
+			else{
+				
 				values <- 1 - dynamic_in_match_win(
 						point_a = score$pointa,
 						point_b = score$pointb,
@@ -95,8 +98,9 @@ get_win_prob <- function(
 						returner.serve.points.won = player1.serve.won,
 						returner.serve.points = player1.serve.points,
 						format = format
-					)	
-					
+					)						
+			}
+			
 				values <- formatC(c(values, 1 - values) * 100, dig = 1, format = "f")
 				names(values) <- c("player1", "player2")
 						

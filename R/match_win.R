@@ -34,7 +34,7 @@ match_win <- function (
 				
 			p1 <- as.character(round(pa, 2))
 			p2 <- as.character(round(pb, 2))
-			
+				
 			id1 <- paste(p1, p2, sep = ":")
 			id2 <- paste(p2, p1, sep = ":")
 				
@@ -59,6 +59,7 @@ match_win <- function (
 			)
 		}
 		
+			
 		    matrices <- iid_player_probs_lookup(server.prob, returner.prob)
 		    
 		    if(bestof3){
@@ -68,6 +69,7 @@ match_win <- function (
 		        matrices[[2]]$match <- matrices[[2]]$match[2:nrow(matrices[[2]]$match), 
 		            2:nrow(matrices[[2]]$match)]
 			}
+		   
 		    
 		    serving_player <- 1		    	  		    
 		    returning_player <- 2
@@ -113,7 +115,7 @@ match_win <- function (
 		            game_b, set_a, set_b, serving_player = serving_player, 
 		            returning_player = returning_player, matrices = matrices, 
 		            is.regular.tiebreak =  is.regular.tiebreak, bestof3 = bestof3)
-		            	            
+				
 		        wingame_winset + losegame_loseset
 		    }
 		    else {

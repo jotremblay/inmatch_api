@@ -22,8 +22,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 	 server.prob <- serve_update(server.serve.points.won, server.serve.points, server.prob)
 	 return.prob <- serve_update(returner.serve.points.won, returner.serve.points, returner.prob)
 	
-		# Assume points checked and switched for serving player
-
+	 
 	 match_win(
 			point_a,
 			point_b,
@@ -32,7 +31,7 @@ dynamic_in_match_win <- function (point_a, point_b, game_a, game_b, set_a, set_b
 			set_a,
 			set_b,
 			server.prob,
-			returner.prob,
+			return.prob,
 			bestof3 = format == "bestof3"
 			)
 	

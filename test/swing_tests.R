@@ -6,99 +6,117 @@ get_win_prob_df <- Vectorize(get_win_prob_df)
 
 con <- make_connection()
 
-score <- tbl(con, "tbl_GIG_SMTGameScore" ) %>%
+score <- tbl(con, "tbl_GIG_Stats_Final_WinPrediction") %>%
 	collect()
 
 score <- score %>%
-	filter(vchTournamentYear == 2018, vchMatchCode %in% c("MS701", "WS701", "MS601", "MS602", "WS601", "WS602"))
+	filter(vchTournamentYear == 2018, vchMatchCode %in% "WS701")
 	
-baseline <- score %>%
-	select(vchMatchCode, vchPlayer1, vchPlayer2, vchPlayer1Code, vchPlayer2Code)	%>%
-	unique()
-	
-	
-baseline$format <- ifelse(grepl("WS", baseline$vchMatchCode), "bestof3", "bestof5")
-	
-baseline_stats <- do.call("rbind", mapply(
-	get_baseline_df,
-	player1id = baseline$vchPlayer1Code,
-	opponent1id = baseline$vchPlayer2Code,
-	mens = baseline$format == "bestof5",
-	format  = baseline$format,
-	SIMPLIFY = F
-))
+params <- do.call("rbind", lapply(score$vchParameterUsed, function(x){
+	x <- strsplit(x, ";")[[1]]
+	variable <- sapply(strsplit(x, "="), function(z) z[1])
+	value <- sapply(strsplit(x, "="), function(z) z[2])
+	names(value) <- variable
+value
+}))
 
-baseline <- cbind(baseline, baseline_stats)
+params <- as.data.frame(params, stringsAsFactors = F)
 
-score <- score %>%
-	inner_join(baseline %>% select(-(vchPlayer1:vchPlayer2Code)), by = "vchMatchCode")
+params <- params %>%
+	dplyr::mutate(
+		format = "bestof3",
+		player1.serving = player1.serving == "TRUE",
+		player1.won = player1.won == "TRUE"
+	) %>%
+	dplyr::mutate_at(
+		vars(player1.serve.prob:player2.score),
+		funs(as.numeric)
+	)
+
+score <- cbind(score, params)
 
 score <- score %>% arrange(vchMatchCode, intCurrentSet, intCurrentGame, intCurrentPoint)
 
 
-score <- score %>%
-	group_by(vchMatchCode, intCurrentSet) %>%
-	dplyr::mutate(
-		intPlayer2Sets = intPlayer2Sets[1],
-		intPlayer1Sets = intPlayer1Sets[1]
-		) %>%
-	group_by(vchMatchCode, intCurrentSet, intCurrentGame) %>%
-	dplyr::mutate(
-		intPlayer2Games = intPlayer2Games[1],
-		intPlayer1Games = intPlayer1Games[1]
-		) %>%
-	dplyr::mutate(
-		player1.serving = vchServer == vchPlayer1,
-		player1.won = (player1.serving & intServerPoint == 1) | (!player1.serving & intServerPoint == -1)
-	)
-
 # Scored with evenly matched players
 score <- score %>%
-	filter(!is.na(intServerPoint)) %>%
 	dplyr::mutate(
 		prediction = get_win_prob_df(
 			format = format,
 			player1.serving = player1.serving,
 			player1.won = player1.won,			
-			player1.serve.prob= 0.6, 
-			player2.serve.prob= 0.6,
-			player1.serve.points= 0,
-			player2.serve.points= 0,
-			player1.serve.won= 0,
-			player2.serve.won= 0,
-			player1.sets= intPlayer1Sets,
-			player2.sets= intPlayer2Sets,
-			player1.games= intPlayer1Games,
-			player2.games= intPlayer2Games,
-			player1.score= intPlayer1Score,
-			player2.score= intPlayer2Score
+			player1.serve.prob= player1.serve.prob, 
+			player2.serve.prob= player2.serve.prob,
+			player1.serve.points= player1.serve.points,
+			player2.serve.points= player2.serve.points,
+			player1.serve.won= player1.serve.won,
+			player2.serve.won=  player2.serve.won,
+			player1.sets= player1.sets,
+			player2.sets= player2.sets,
+			player1.games= player1.games,
+			player2.games= player2.games,
+			player1.score= player1.score,
+			player2.score= player2.score
 		)
 	)
 	
+score$prediction[score$vchPlayerSecondName == "Wozniacki"] <- 1 - score$prediction[score$vchPlayerSecondName == "Wozniacki"]
 
 score <- score %>%
-	group_by(vchMatchCode) %>%
+	ungroup() %>%
+	group_by(vchPlayerSecondName) %>%
 	dplyr::mutate(
-		swing = c(NA, diff(prediction)),
-		point = 1:n()
+		swing = c(NA, diff(prediction))
 	)
 	
-score %>%
-	ggplot(aes(y = prediction, x = point)) +
-	facet_wrap(~vchMatchCode, scale = "free_x") +
-	geom_point() + 
-	geom_line() +
-	scale_y_continuous(lim = c(0, 1))
+set1 <- score %>%
+	filter(intCurrentSet == 1) %>% 
+	select(intCurrentSet, intCurrentGame, intCurrentPoint, contains("dec"), vchPlayerSecondName, prediction, swing)
 	
+as.data.frame(set1 %>% filter(vchPlayerSecondName == "Halep") %>% arrange(-swing))
+as.data.frame(set1 %>% filter(vchPlayerSecondName == "Wozniacki") %>% arrange(-swing))
+		
+		
+get_win_prob <- Vectorize(get_win_prob)
+			
 	
-# Check consistency in swings
-any(score$swing > 0 & !score$player1.won, na.rm = T)
-any(score$swing < 0 & score$player1.won, na.rm = T)
-
-# Biggest swings
-biggest_swings <- score %>%
-	arrange(vchMatchCode, -abs(swing)) %>%
+x <- score %>%
+	filter(intCurrentSet == 1, intCurrentGame == 13, vchPlayerSecondName == "Halep") %>%
 	dplyr::mutate(
-		biggest = 1:n() %in% 1:5
-	) %>%
-	filter(biggest)
+		prediction = get_win_prob(
+			format = format,
+			player1.serving = player1.serving,
+			player1.won = player1.won,			
+			player1.serve.prob= player1.serve.prob, 
+			player2.serve.prob= player2.serve.prob,
+			player1.serve.points= player1.serve.points,
+			player2.serve.points= player2.serve.points,
+			player1.serve.won= player1.serve.won,
+			player2.serve.won=  player2.serve.won,			
+			player1.sets= player1.sets,
+			player2.sets= player2.sets,
+			player1.games= player1.games,
+			player2.games= player2.games,
+			player1.score= player1.score,
+			player2.score= player2.score
+		)
+	)	
+	
+# Player serving at 0-1 in tiebreak, 0.57 vs 0.59
+# Chance of winning set 
+0.33867823
+
+# Chance of winning match
+0.6740313 # Set up
+0.1840913 # Set down
+
+# Player receiving at 2-1 in tiebreak, 0.57 vs 0.59
+# Chance of winning set 
+0.32897872
+
+# Chance of winning match (same)
+0.6740313 # Set up
+0.1840913 # Set down
+
+
+	

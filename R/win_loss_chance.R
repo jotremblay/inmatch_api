@@ -56,6 +56,7 @@ win_loss_chance <- function(
 		 				        
 		        match_win_chance <- match_win_prob(set_a, set_b, matrices = matrices, serving_player = serving_player, returning_player = returning_player)	
 		        }
+		        
 		        	        
 		        
 game_win_chance * set_win_chance * match_win_chance
