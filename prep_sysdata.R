@@ -353,7 +353,42 @@ wta_doubles_serve_priors <- wta_doubles_serve_priors %>%
 	left_join(doubles_players %>% filter(tour != "ATP") %>% select(opponentid = playerid, ID_O = ID_P), by = "ID_O")		
 	
 
+# Add slam indicators to elo datasets
+atp_slam <- c(
+	"ATPN409",
+	"ATPMC10",
+	"ATPD643",
+	"ATPD683",
+	"ATPC977",
+	"ATPW367",
+	"ATPF324"
+)	
+	
+	
+atp_elo$won_slam <- atp_elo$playerid %in% atp_slam
+	
+	
+wta_slam <- c(
+	"WTA313402", 
+	"WTA230220", 
+	"WTA311470", 
+	"WTA190787", 
+	"WTA110552", 
+	"WTA312001", 
+	"WTA314206", 
+	"WTA230234", 
+	"WTA314320", 
+	"WTA310137", 
+	"WTA315683", 
+	"WTA319939", 
+	"WTA316239")
+	
+	
+wta_elo$won_slam <- wta_elo$playerid %in% wta_slam
+	
+
 devtools::use_data(
+	player_names, 
 	atp_elo, 
 	atp_elo_doubles,
 	wta_elo,
