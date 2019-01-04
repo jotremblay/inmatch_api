@@ -43,19 +43,23 @@ match_win <- function (
 			
 			tbgameA_mat <- tiebreak_game_matrices[[id1]]
 			tbgameB_mat <- tiebreak_game_matrices[[id2]]
+
+
+		tb10gameA_mat <- tiebreak10[[id1]]
+		tb10gameB_mat <- tiebreak10[[id2]]
+		
+		settbgameA_mat <- set_win_tiebreak[[id1]]
+		settbgameB_mat <- set_win_tiebreak[[id2]]
 			
-			settbgameA_mat <- set_win_tiebreak[[id1]]
-			settbgameB_mat <- set_win_tiebreak[[id2]]
+		setadvgameA_mat <- set_win_advantage[[id1]]
+		setadvgameB_mat <- set_win_advantage[[id2]]
 			
-			setadvgameA_mat <- set_win_advantage[[id1]]
-			setadvgameB_mat <- set_win_advantage[[id2]]
-			
-			MA <- advantage_matches[[id1]]
-			MB <- advantage_matches[[id2]]
+		MA <- advantage_matches[[id1]]
+		MB <- advantage_matches[[id2]]
 			
 		
-		list(A = list(game = gameA_mat, tiebreak = tbgameA_mat, set_tiebreak = settbgameA_mat, set_advantage = setadvgameA_mat, match = MA), 
-			B = list(game = gameB_mat, tiebreak = tbgameB_mat, set_tiebreak = settbgameB_mat, set_advantage = setadvgameB_mat, match = MB)
+		list(A = list(game = gameA_mat, tiebreak = tbgameA_mat, set_tiebreak = settbgameA_mat, set_advantage = setadvgameA_mat,  tiebreak10 = tb10gameA_mat, match = MA), 
+			B = list(game = gameB_mat, tiebreak = tbgameB_mat, set_tiebreak = settbgameB_mat, set_advantage = setadvgameB_mat,  tiebreak10 = tb10gameB_mat, match = MB)
 			)
 		}
 		

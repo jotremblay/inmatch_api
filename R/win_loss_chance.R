@@ -16,11 +16,14 @@ win_loss_chance <- function(
 		        bestof3 = T) {
 		 	
 		 		# Change of winning game from current points
-		 		game_win_chance <- game_win_prob(point_a, point_b, win_game, is.regular.tiebreak, matrices = matrices, serving_player = serving_player, returning_player = returning_player)
+		 		tiebreak10 <- ifelse(bestof3, set_a + set_b == 2, set_a + set_b == 4) & game_a == 6 & game_b == 6
+		 		
+		 		game_win_chance <- game_win_prob_tiebreak10(point_a, point_b, win_game, is.regular.tiebreak, is.tiebreak10 = tiebreak10, matrices = matrices, serving_player = serving_player, returning_player = returning_player)
 		 		
 		 		# Check for set-deciding game		 	
-		 		tiebreak_set <- ((bestof3 & (set_a + set_b) != 2) | (!bestof3 & (set_a + set_b) != 4))	 		
-		 		set_deciding <- (tiebreak_set & game_a == 6 & game_b == 6) |
+		 		tiebreak_set <- game_a == 6 & game_b == 6
+		 				
+		 		set_deciding <- tiebreak_set |
 		 			(game_a >= 5 & (game_a - game_b) >= 1 & win_game) |
 		 			(game_b >= 5 & (game_b - game_a) >= 1 & !win_game)
 		 		
@@ -31,13 +34,7 @@ win_loss_chance <- function(
 		 		
 		 			game_a <- game_a + as.numeric(win_game)		
 		 			game_b <- game_b + (1 - as.numeric(win_game))
-		 			
-		 			# Advantage scenario
-		 			if((game_a + game_b) >= 12){ 
-			 			game_score <- update_score(0, 0, game_a, game_b, set_a, set_b, bestof3)
-		 				game_a <- game_score$gamea
-		 				game_b <- game_score$gameb
-		 			}		 		
+		 					 				 		
 		 			
 		 			set_win_chance <- set_win_prob(game_a, game_b, win_set, matrices = matrices, serving_player = serving_player, returning_player = returning_player)		 			
 		 		}

@@ -4,8 +4,8 @@
 \alias{get_baseline}
 \title{Get Baseline Serve and Win Probabilities}
 \usage{
-get_baseline(player1id, player2id = NULL, opponent1id, opponent2id = NULL,
-  mens = TRUE, format = "laver")
+get_baseline(player1id, player2id = NULL, opponent1id,
+  opponent2id = NULL, mens = TRUE, format = "laver")
 }
 \arguments{
 \item{player1id.}{ATP/WTA player id}

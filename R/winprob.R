@@ -43,7 +43,7 @@ get_win_prob <- function(
 			if(format == "doubles") format <- "bestof3"
 			
 			if(player1.serving)
-				score <- update_score(
+				score <- update_score_tiebreak10(
 					pointa = player1.score + as.numeric(player1.won), 
 					pointb = player2.score + as.numeric((1 - player1.won)), 
 					gamea = player1.games, 
@@ -53,7 +53,7 @@ get_win_prob <- function(
 					bestof3 = format == "bestof3"
 				)
 			else
-				score <- update_score(
+				score <- update_score_tiebreak10(
 					pointa = player2.score + as.numeric((1 - player1.won)), 
 					pointb = player1.score + as.numeric(player1.won), 
 					gamea = player2.games, 
