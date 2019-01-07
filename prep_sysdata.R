@@ -7,7 +7,7 @@ library(inmatch)
 
 rm(list = ls())
 
-load(file = "~/Software/inmatch_api/R/sysdata.rda")
+load(file = "~/Software/inmatch_api_10/R/sysdata.rda")
 
 # database players and ids
 con <- make_connection(database = "TennisMatchStats")
@@ -387,7 +387,7 @@ wta_slam <- c(
 wta_elo$won_slam <- wta_elo$playerid %in% wta_slam
 	
 
-devtools::use_data(
+usethis::use_data(
 	player_names, 
 	atp_elo, 
 	atp_elo_doubles,
@@ -405,7 +405,7 @@ devtools::use_data(
 	tiebreak_matches,
 	tiebreak10,
 	tiebreak10_matches,
-	pkg = "~/Software/inmatch_api", 
+	pkg = "~/Software/inmatch_api_10", 
 	internal = TRUE, 
 	overwrite = TRUE
 	)
