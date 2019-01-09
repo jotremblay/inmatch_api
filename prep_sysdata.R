@@ -49,8 +49,11 @@ oncourt_doubles_players <- rbind(
 
 
 # elo ratings and identifier
-atp_elo <- current_elo(mens = T, surface = "Hard")	
-wta_elo <- current_elo(mens = F, surface = "Hard")	
+atp_elo <- sofascoreR::current_elo(mens = T, surface = "Hard")	
+wta_elo <- sofascoreR::current_elo(mens = F, surface = "Hard")	
+
+# Williams correction
+wta_elo$Hard[wta_elo$Player == "Serena Williams"] <- wta_elo$Hard[wta_elo$Player == "Serena Williams"] + 30
 
 atp_elo <- atp_elo %>% 
 	select(name = Player, elo = Hard, matches = player_match_num)
@@ -381,13 +384,44 @@ wta_slam <- c(
 	"WTA310137", 
 	"WTA315683", 
 	"WTA319939", 
-	"WTA316239")
+	"WTA316239",
+	"WTA319998")
 	
 	
 wta_elo$won_slam <- wta_elo$playerid %in% wta_slam
 	
+	
+atp_nextgen <- c(
+	"ATPTE51",
+	"ATPSU55",
+	"ATPRH16",
+	"ATPDH58",
+	"ATPO522",
+	"ATPTD51",
+	"ATPMP01"
+)	
 
-usethis::use_data(
+	
+wta_nextgen <- c(
+	"WTA324261",
+	"WTA322526",
+	"WTA323027",
+	"WTA322730",
+	"WTA323231",
+	"WTA320942",
+	"WTA324267",
+	"WTA320682",
+	"WTA322277",
+	"WTA320760",
+	"WTA320013",
+	"WTA320277"
+)	
+
+atp_elo$nextgen <- atp_elo$playerid %in% atp_nextgen
+wta_elo$nextgen <- wta_elo$playerid %in% wta_nextgen
+
+
+devtools::use_data(
 	player_names, 
 	atp_elo, 
 	atp_elo_doubles,
