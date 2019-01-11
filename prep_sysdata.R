@@ -23,6 +23,17 @@ player_names <- player_names %>%
 	rename(playerid = PlayerCode)
 
 
+player_names <- player_names %>% filter(name != "MATS WILANDER")
+
+player_names <- player_names %>% filter(!(playerid %in% 
+	c("WTA312799", 
+	"WTA322631",
+	"ATPW023",
+	"ATPR519",
+	"WTA326160",
+	"WTA325188",
+	"WTA321742")))
+
 # oncourt singles players and ids
 data(atp_players, package = "oncourt")
 data(wta_players, package = "oncourt")
@@ -53,7 +64,10 @@ atp_elo <- sofascoreR::current_elo(mens = T, surface = "Hard")
 wta_elo <- sofascoreR::current_elo(mens = F, surface = "Hard")	
 
 # Williams correction
-wta_elo$Hard[wta_elo$Player == "Serena Williams"] <- wta_elo$Hard[wta_elo$Player == "Serena Williams"] + 30
+wta_elo$Hard[wta_elo$Player == "Serena Williams"] <- wta_elo$Hard[wta_elo$Player == "Serena Williams"] + 60
+
+wta_elo$Hard[wta_elo$Player == "Anastasija Sevastova"] <- 1775
+
 
 atp_elo <- atp_elo %>% 
 	select(name = Player, elo = Hard, matches = player_match_num)
@@ -420,6 +434,70 @@ wta_nextgen <- c(
 atp_elo$nextgen <- atp_elo$playerid %in% atp_nextgen
 wta_elo$nextgen <- wta_elo$playerid %in% wta_nextgen
 
+## DUPLICATE CHECK
+dups <- player_names %>%
+	group_by(playerid, tour) %>%
+	dplyr::summarise(
+		n = n()
+	) %>%
+	filter(n > 1)
+	
+dups <- player_names %>%
+	group_by(ShortName, tour) %>%
+	dplyr::summarise(
+		n = n()
+	) %>%
+	filter(n > 1)	
+	
+dups <- atp_elo %>%
+	group_by(playerid, tour) %>%
+	dplyr::summarise(
+		n = n()
+	) %>%
+	filter(n > 1)	
+
+dups <- wta_elo %>%
+	group_by(playerid, tour) %>%
+	dplyr::summarise(
+		n = n()
+	) %>%
+	filter(n > 1)	
+	
+
+dups <- wta_elo_doubles %>%
+	group_by(playerid, tour) %>%
+	dplyr::summarise(
+		n = n()
+	) %>%
+	filter(n > 1)	
+	
+dups <- atp_elo_doubles %>%
+	group_by(playerid, tour) %>%
+	dplyr::summarise(
+		n = n()
+	) %>%
+	filter(n > 1)				
+
+
+## FIX FOR DUPLICATES/ONLY HAWKEYE
+player_names <- player_names %>% filter(name != "MATS WILANDER")
+
+player_names <- player_names %>% filter(!(playerid %in% 
+	c("WTA312799", 
+	"WTA322631",
+	"ATPW023",
+	"ATPR519",
+	"WTA326160",
+	"WTA325188",
+	"WTA321742")))
+
+atp_elo <- atp_elo %>%
+	filter(!(playerid == "ATPD923" & matches < 10))
+	
+atp_elo <- atp_elo %>%
+	filter(!(playerid == "ATPL397" & matches < 10))	
+
+wta_elo <- wta_elo %>% filter(ID_P != 12181)
 
 devtools::use_data(
 	player_names, 

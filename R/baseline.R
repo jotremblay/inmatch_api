@@ -24,6 +24,12 @@ get_baseline <- function(player1id, player2id = NULL, opponent1id, opponent2id =
 	
 	player_serve <- serve_prior_lookup(player1id, player2id, opponent1id, opponent2id, mens = mens)
 	
+	if(length(player_serve$player) == 0)
+		player_serve$player <- ifelse(mens, 0.65, 0.57)
+	
+	if(length(player_serve$opponent) == 0)
+		player_serve$opponent <- ifelse(mens, 0.65, 0.57)
+
 	player1.serve.prob <- calibrate_serve(player1.win.prediction, player_serve$player, player_serve$opponent, bestof3 = format %in% c("laver", "bestof3", "doubles"))
 	
 	player2.serve.prob <- calibrate_serve(player2.win.prediction, player_serve$opponent, player_serve$player, bestof3 = format %in% c("laver", "bestof3", "doubles"))
