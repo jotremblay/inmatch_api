@@ -33,6 +33,16 @@ player_names <- player_names %>% filter(!(playerid %in%
 	"WTA326160",
 	"WTA325188",
 	"WTA321742")))
+	
+# Clean short names of players
+#short_names <- gsub("\\.", "", player_names$ShortName)
+#grep("[[:punct:]]", short_names, val = T)
+
+player_names$ShortName[player_names$ShortName == "C. Su?rez Navarro"] <- "C. Suarez Navarro"
+
+player_names$ShortName[player_names$ShortName == "M. Duque-Mari?o"] <- "M. Duque-Marino"
+
+player_names$ShortName[player_names$ShortName == "M. Mart??nez S??nchez"] <- "M. Martinez Sanchez"
 
 # oncourt singles players and ids
 data(atp_players, package = "oncourt")

@@ -16,7 +16,7 @@ elo_lookup <- function(id1, id2 = NULL, mens, default = 1300){
 		if(is.null(id2)){
 		elo <- atp_elo %>% filter(playerid == id1)
 	
-		if(nrow(elo) == 0)
+		if(nrow(elo) == 0 || is.na(elo$elo))
 			default	
 		else
 			elo$elo		
@@ -26,13 +26,13 @@ elo_lookup <- function(id1, id2 = NULL, mens, default = 1300){
 			elo1 <- atp_elo_doubles %>% filter(playerid == id1)
 			elo2 <- atp_elo_doubles %>% filter(playerid == id2)
 
-		if(nrow(elo1) == 0)
+		if(nrow(elo) == 0 || is.na(elo$elo))
 			elo1 <- default
 		else
 			elo1 <- elo1$elo	
 			
 
-		if(nrow(elo2) == 0)
+		if(nrow(elo2) == 0 || is.na(elo2$elo))
 			elo2 <- default
 		else
 			elo2 <- elo2$elo	
@@ -44,7 +44,7 @@ elo_lookup <- function(id1, id2 = NULL, mens, default = 1300){
 		if(is.null(id2)){
 		elo <- wta_elo %>% filter(playerid == id1)
 		
-		if(nrow(elo) == 0)
+		if(nrow(elo) == 0 || is.na(elo$elo))
 			default
 		else
 			elo$elo	
@@ -54,13 +54,13 @@ elo_lookup <- function(id1, id2 = NULL, mens, default = 1300){
 			elo1 <- wta_elo_doubles %>% filter(playerid == id1)
 			elo2 <- wta_elo_doubles %>% filter(playerid == id2)
 
-		if(nrow(elo1) == 0)
+		if(nrow(elo1) == 0 || is.na(elo1$elo))
 			elo1 <- default
 		else
 			elo1 <- elo1$elo	
 			
 
-		if(nrow(elo2) == 0)
+		if(nrow(elo2) == 0 || is.na(elo2$elo))
 			elo2 <- default
 		else
 			elo2 <- elo2$elo	
