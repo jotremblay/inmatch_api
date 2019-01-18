@@ -101,6 +101,9 @@ get_win_prob <- function(
 					)						
 			}
 			
+				values <- ifelse(values < 0.01, 0.01, 
+					ifelse(values > 0.99, 0.99, values))
+				
 				values <- formatC(c(values, 1 - values) * 100, dig = 1, format = "f")
 				names(values) <- c("player1", "player2")
 						

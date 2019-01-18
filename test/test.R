@@ -67,6 +67,35 @@ singles <- tb10 %>%
 		)
 	)
 	
+	
+
+singles <- tb10 %>%	
+	dplyr::mutate(
+		point = 1:n(),
+		player1.serve.prob = 0.65,
+		player2.serve.prob = 0.65,
+		player1.serve.inmatch = player1.serve.won / player2.serve.points,
+		player2.serve.inmatch = player2.serve.won / player2.serve.points,
+		malus = player1.serve.inmatch - player2.serve.inmatch,
+		prediction = get_win_prob_df(
+			format=format,
+			player1.serving=player1.serving,
+			player1.won=player1.won,
+			player1.serve.prob=player1.serve.prob,
+			player2.serve.prob=player2.serve.prob,
+			player1.serve.points=player1.serve.points,
+			player2.serve.points=player2.serve.points,
+			player1.serve.won=player1.serve.won,
+			player2.serve.won=player2.serve.won,
+			player1.sets=player1.sets,
+			player2.sets=player2.sets,
+			player1.games=player1.games,
+			player2.games=player2.games,
+			player1.score=player1.score,
+			player2.score=player2.score
+		)
+	)
+		
 singles %>%
 	ggplot(aes(y = prediction, x = point, colour = player1.won))	 + 
 	geom_point()
