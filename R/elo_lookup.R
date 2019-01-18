@@ -26,7 +26,7 @@ elo_lookup <- function(id1, id2 = NULL, mens, default = 1300){
 			elo1 <- atp_elo_doubles %>% filter(playerid == id1)
 			elo2 <- atp_elo_doubles %>% filter(playerid == id2)
 
-		if(nrow(elo) == 0 || is.na(elo$elo))
+		if(nrow(elo1) == 0 || is.na(elo1$elo))
 			elo1 <- default
 		else
 			elo1 <- elo1$elo	
