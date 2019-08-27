@@ -1,15 +1,21 @@
 # Prepare serve return for atp players
 library(devtools)
 library(oncourt)
+library(elodb)
+
+### Update serve data for singles and doubles in oncourt
+#source(file = "~/Software/oncourt/prep_sysdata.R")
+
+### Reinstall oncourt
+#devtools::install("~/Software/oncourt/")
 
 rm(list = ls())
 
-load(file = "~/Software/inmatch_api/R/sysdata.rda")
+load(file = "~/Software/inmatch_api_10/R/sysdata.rda")
 
-data(atp_players_links)
-
-player_names <- data.frame(
-	Name = c(
+### List of laver cup players
+laver_players <- data.frame(
+	name = c(
 	"Roger Federer",
 	"Grigor Dimitrov",
 	"Alexander Zverev",
@@ -22,70 +28,173 @@ player_names <- data.frame(
 	"John Isner",
 	"Nick Kyrgios",
 	"Kevin Anderson",
-	"Diego Sebastian Schwartzman",
+	"Diego Schwartzman",
 	"Nicolas Jarry"
 ),
 	World = rep(c(0, 1), each = 7),
 	stringsAsFactors = F
 )
 
+### Retrieve names as in player database
+con <- make_connection(server = 'prd-db-ta', database = 'TennisMatchStats')
 
-players <- atp_players_links %>%
-	filter(NAME_P %in% player_names$Name)
+player_names <- tbl(con, "Player") %>% collect() 
 
-players$World <- players$NAME_P %in% player_names$Name[player_names$World == 1]
+player_names <- player_names %>%	
+	dplyr::mutate(
+		name = paste(FirstName, LastName),
+		tour = substr(PlayerCode, 1, 3)
+	) %>%
+	rename(playerid = PlayerCode) 
+	
+player_names <- player_names[grepl("^ATP", player_names$playerid),]
 
-matchup_grid <- expand.grid(ID_P = players$ID_P[players$World], 
-	ID_O =  players$ID_P[!players$World])
+player_names <- player_names %>%
+	inner_join(laver_players, by = "name")
+	
+nrow(laver_players)
+nrow(player_names)	
 
-# Paris as indoor hard
-event <- 13868 
+### Merge with oncourt player info for oncourt ID 
+### Fix names for hawkeye
+data(atp_players, package = "oncourt")
+data(atp_doubles, package = "oncourt")
 
-matchup_grid$Serve <- mapply(
-	efron_morris,
-	player = matchup_grid$ID_P,
-	opponent = matchup_grid$ID_O,
-	MoreArgs = list(event = event)
-)
+oncourt_players <- atp_players %>%
+	select(name = NAME_P, ID_P)
 
-matchup_grid2 <- expand.grid(ID_P = players$ID_P[!players$World], 
-	ID_O =  players$ID_P[players$World])
-
-
-matchup_grid2$Serve <- mapply(
-	efron_morris,
-	player = matchup_grid2$ID_P,
-	opponent = matchup_grid2$ID_O,
-	MoreArgs = list(event = event)
-)
+oncourt_doubles_players <- atp_doubles %>%
+	select(NAME1, NAME2, Player1, Player2)
+	
+oncourt_doubles_players <- rbind(
+	oncourt_doubles_players %>% select(name = NAME1, ID_P = Player1),
+	oncourt_doubles_players %>% select(name = NAME2, ID_P = Player2)
+)	%>% unique()
 
 
-matchup_grid <- rbind(matchup_grid, matchup_grid2)
+### Fix names; Merge with player table
+oncourt_players$name[oncourt_players$name == "Diego Sebastian Schwartzman"] <- "Diego Schwartzman"
 
-serve_priors <- matchup_grid %>%
-	inner_join(players %>% select(player = NAME_P, playerid = atpid, ID_P)) %>%
-	inner_join(players %>% select(opponent = NAME_P, opponentid = atpid, ID_O = ID_P)) %>%
-	select(-ID_P, -ID_O)
+oncourt_doubles_players$name[oncourt_doubles_players$name == "Diego Sebastian Schwartzman"] <- "Diego Schwartzman"
+
+player_names$name <- inmatch::clean_names(player_names$name)
+oncourt_players$name <- inmatch::clean_names(oncourt_players$name)
+oncourt_doubles_players$name <- inmatch::clean_names(oncourt_doubles_players$name)
+
+players <- player_names %>%
+	inner_join(oncourt_players, by = "name") %>%
+	dplyr::mutate(
+		ID_P = as.character(ID_P)
+	)
+
+doubles_players <- player_names %>%
+	inner_join(oncourt_doubles_players, by = "name") %>%
+	dplyr::mutate(
+		ID_P = as.character(ID_P)
+	)
+
+
+
+### Get h2h and current singles and doubles elo ratings
+con <- elodb::make_connection()
+
+atp_elo <- get_current(con, basetable = "atp_ratings", surface = "Hard")
+
+atp_doubles_elo <- get_current(con, basetable = "atp_doubles_ratings", surface = "Hard")
+
+atp_elo <- atp_elo %>% rename(ID_P = playerid) %>%
+	inner_join(players, by = "ID_P")
+	
+atp_doubles_elo <- atp_doubles_elo %>% rename(ID_P = playerid) %>%
+	inner_join(doubles_players, by = "ID_P")
+	
+### head to head effects
+h2h <- elodb::create_h2h(con, "atp_ratings_historical")
+
+h2h <- h2h %>%
+	rename(ID_P = playerid, ID_O = opponentid) %>%
+	dplyr::mutate(
+		ID_P = as.character(ID_P)
+	) %>%
+	inner_join(players %>% select(playerid, ID_P), by = "ID_P") %>%
+	inner_join(players %>% select(opponentid = playerid, ID_O = ID_P), by = "ID_O")
+	
+### Create all possible world and europe matchups
+matchup_grid <- rbind(
+	expand.grid(ID_P = players$ID_P[players$World == 1], 
+	ID_O =  players$ID_P[players$World == 0]),
+	expand.grid(ID_P = players$ID_P[players$World == 0], 
+	ID_O =  players$ID_P[players$World == 1])	
+	)
+
+### Create serve expectations for each matchup
+### Event determines the tournament average
+### Get most recent Masters indoor hardcourt event
+event <- oncourt::get_eventid(atp = T, surface = 3)
+
+serve_priors <- efron_morris(event = event, atp = T, surface = "Hard", doubles = F)
+
+serve_priors$ID_P <- as.character(serve_priors$ID_P)
+
+atp_serve_priors <- matchup_grid %>%
+	left_join(serve_priors %>% select(ID_P, serve, event_serve)) %>%
+	left_join(serve_priors %>% select(ID_O = ID_P, return))
+	
+
+atp_serve_priors <- atp_serve_priors %>%
+	dplyr::mutate(
+		event_serve = mean(event_serve, na.rm = T),
+		serve = ifelse(is.na(serve), 0, serve),
+		return = ifelse(is.na(return), 0, return),
+		prior = event_serve + serve - return
+	)
+
+doubles_matchup_grid <- rbind(
+	expand.grid(
+	ID_P = doubles_players$ID_P[doubles_players$World == 1], 
+	ID_O =  doubles_players$ID_P[doubles_players$World == 0]
+		),
+	expand.grid(
+	ID_P = doubles_players$ID_P[doubles_players$World == 0], 
+	ID_O =  doubles_players$ID_P[doubles_players$World == 1]
+		)			
+	)
+
+### Use same tournament priors for doubles
+atp_doubles_serve_priors <- doubles_matchup_grid %>%
+	left_join(serve_priors %>% select(ID_P, serve, event_serve)) %>%
+	left_join(serve_priors %>% select(ID_O = ID_P, return))
+	
+
+atp_doubles_serve_priors <- atp_doubles_serve_priors %>%
+	dplyr::mutate(
+		event_serve = mean(event_serve, na.rm = T),
+		serve = ifelse(is.na(serve), 0, serve),
+		return = ifelse(is.na(return), 0, return),
+		prior = event_serve + serve - return
+	)
+	
+# Merge with playerid
+atp_serve_priors <- atp_serve_priors %>%
+	left_join(players %>% select(playerid, ID_P), by = "ID_P")	%>%
+	left_join(players %>% select(opponentid = playerid, ID_O = ID_P), by = "ID_O")
 	
 	
-library(sofascoreR)
-
-atp_elo <- current_elo(mens = T, surface = "Hard")	
-
-atp_elo <- atp_elo %>% filter(Player %in% player_names$Name) %>%
-	select(player = Player, elo = Hard, matches = player_match_num)
-
-atp_elo <- atp_elo %>% 
-	inner_join(players %>% select(player = NAME_P, playerid = atpid))
+atp_doubles_serve_priors <- atp_doubles_serve_priors %>%
+	left_join(doubles_players %>% select(playerid, ID_P), by = "ID_P")	%>%
+	left_join(doubles_players %>% select(opponentid = playerid, ID_O = ID_P), by = "ID_O")
 	
+	
+setwd("~/Software/inmatch_api_10/")
 
-devtools::use_data(
-	atp_elo,
-	serve_priors,
+usethis::use_data(
+	h2h,
+	player_names, 
+	atp_elo, 
+	atp_elo_doubles,
+	atp_serve_priors,
+	atp_doubles_serve_priors,
 	advantage_matches,
-	atp_importance,
-	atp_importance_laver,
-	atp_importance_single,
 	regular_game_matrices,
 	set_win_advantage,
 	set_win_tiebreak,
@@ -93,9 +202,6 @@ devtools::use_data(
 	tiebreak_matches,
 	tiebreak10,
 	tiebreak10_matches,
-	wta_importance, 
-	pkg = "~/Software/inmatch_api", 
 	internal = TRUE, 
 	overwrite = TRUE
 	)
-
