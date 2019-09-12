@@ -17,21 +17,19 @@ load(file = "~/Software/inmatch_api_10/R/sysdata.rda")
 laver_players <- data.frame(
 	name = c(
 	"Roger Federer",
-	"Grigor Dimitrov",
+	"Rafael Nadal",
+	"Dominic Thiem",
 	"Alexander Zverev",
-	"Novak Djokovic",
-	"David Goffin",
-	"Kyle Edmund",
-	"Jeremy Chardy",
-	"Jack Sock",
-	"Frances Tiafoe",
+	"Stefanos Tsitsipas",
+	"Fabio Fognini",
 	"John Isner",
+	"Jack Sock",
 	"Nick Kyrgios",
-	"Kevin Anderson",
-	"Diego Schwartzman",
-	"Nicolas Jarry"
+	"Denis Shapovalov",
+	"Milos Raonic",
+	"Taylor Fritz"	
 ),
-	World = rep(c(0, 1), each = 7),
+	World = rep(c(0, 1), each = 6),
 	stringsAsFactors = F
 )
 
@@ -77,6 +75,11 @@ oncourt_players$name[oncourt_players$name == "Diego Sebastian Schwartzman"] <- "
 
 oncourt_doubles_players$name[oncourt_doubles_players$name == "Diego Sebastian Schwartzman"] <- "Diego Schwartzman"
 
+oncourt_players$name[oncourt_players$name == "Taylor Harry Fritz"] <- "Taylor Fritz"
+
+oncourt_doubles_players$name[oncourt_doubles_players$name == "Taylor Harry Fritz"] <- "Taylor Fritz"
+
+
 player_names$name <- inmatch::clean_names(player_names$name)
 oncourt_players$name <- inmatch::clean_names(oncourt_players$name)
 oncourt_doubles_players$name <- inmatch::clean_names(oncourt_doubles_players$name)
@@ -100,12 +103,12 @@ con <- elodb::make_connection()
 
 atp_elo <- get_current(con, basetable = "atp_ratings", surface = "Hard")
 
-atp_doubles_elo <- get_current(con, basetable = "atp_doubles_ratings", surface = "Hard")
+atp_elo_doubles <- get_current(con, basetable = "atp_doubles_ratings", surface = "Hard")
 
 atp_elo <- atp_elo %>% rename(ID_P = playerid) %>%
 	inner_join(players, by = "ID_P")
 	
-atp_doubles_elo <- atp_doubles_elo %>% rename(ID_P = playerid) %>%
+atp_elo_doubles <- atp_elo_doubles %>% rename(ID_P = playerid) %>%
 	inner_join(doubles_players, by = "ID_P")
 	
 ### head to head effects
