@@ -22,14 +22,16 @@ laver_players <- data.frame(
 	"Alexander Zverev",
 	"Stefanos Tsitsipas",
 	"Fabio Fognini",
+	"Roberto Bautista Agut",
 	"John Isner",
 	"Jack Sock",
 	"Nick Kyrgios",
 	"Denis Shapovalov",
 	"Milos Raonic",
-	"Taylor Fritz"	
+	"Taylor Fritz",
+	"Jordan Thompson"	
 ),
-	World = rep(c(0, 1), each = 6),
+	World = rep(c(0, 1), each = 7),
 	stringsAsFactors = F
 )
 
@@ -95,7 +97,6 @@ doubles_players <- player_names %>%
 	dplyr::mutate(
 		ID_P = as.character(ID_P)
 	)
-
 
 
 ### Get h2h and current singles and doubles elo ratings
