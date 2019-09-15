@@ -20,14 +20,16 @@ get_baseline <- function(player1id, player2id = NULL, opponent1id, opponent2id =
 	
 	if(is.null(player2id)){
 		adjust <- get_h2h(player1id, opponent1id)
+		shrinkage <- T
 	}	
 	else{
 		adjust <- 0
+		shrinkage <- F
 	}
 	
-	player1.win.prediction <- elo_prediction(player1.elo, player2.elo, adjust)
+	player1.win.prediction <- elo_prediction(player1.elo, player2.elo, adjust, shrinkage)
 	
-	player2.win.prediction <- elo_prediction(player2.elo, player1.elo, -1 * adjust)
+	player2.win.prediction <- elo_prediction(player2.elo, player1.elo, -1 * adjust, shrinkage)
 	
 	player_serve <- serve_prior_lookup(player1id, player2id, opponent1id, opponent2id, mens = mens)
 	
