@@ -24,7 +24,7 @@ get_baseline <- function(player1id, player2id = NULL, opponent1id, opponent2id =
 	}	
 	else{
 		adjust <- 0
-		shrinkage <- F
+		shrinkage <- T
 	}
 	
 	player1.win.prediction <- elo_prediction(player1.elo, player2.elo, adjust, shrinkage)
