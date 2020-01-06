@@ -18,8 +18,6 @@ update_score_doubles(pointa, pointb, gamea, gameb, seta, setb)
 \item{set_a}{Numeric sets won by current server}
 
 \item{set_b}{Numeric sets won by current returner}
-
-\item{set_b}{Numeric sets won by current returner}
 }
 \description{
 Check score change based on result of current point for best-of-3 with final set tiebreak ('doubles') format

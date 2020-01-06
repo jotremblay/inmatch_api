@@ -4,8 +4,13 @@
 \alias{serve_prior_lookup}
 \title{Get Serve Priors}
 \usage{
-serve_prior_lookup(player_id, player2_id = NULL, opponent_id,
-  opponent2_id = NULL, mens)
+serve_prior_lookup(
+  player_id,
+  player2_id = NULL,
+  opponent_id,
+  opponent2_id = NULL,
+  mens
+)
 }
 \arguments{
 \item{player_id.}{ATP/WTA id for player}

@@ -4,10 +4,23 @@
 \alias{get_win_prob}
 \title{Win Prob at End of Point}
 \usage{
-get_win_prob(player1.score, player2.score, player1.games, player2.games,
-  player1.sets, player2.sets, player1.serve.won, player1.serve.points,
-  player2.serve.won, player2.serve.points, player1.serve.prob,
-  player2.serve.prob, player1.won, player1.serving = T, format)
+get_win_prob(
+  player1.score,
+  player2.score,
+  player1.games,
+  player2.games,
+  player1.sets,
+  player2.sets,
+  player1.serve.won,
+  player1.serve.points,
+  player2.serve.won,
+  player2.serve.points,
+  player1.serve.prob,
+  player2.serve.prob,
+  player1.won,
+  player1.serving = T,
+  format
+)
 }
 \arguments{
 \item{player1.score}{Player points won at the start of current point}

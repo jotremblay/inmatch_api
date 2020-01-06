@@ -4,7 +4,7 @@
 \alias{elo_prediction}
 \title{Elo-Based Win Prediction}
 \usage{
-elo_prediction(rating1, rating2)
+elo_prediction(rating1, rating2, adjust = 0, shrinkage = T)
 }
 \arguments{
 \item{rating1}{Numeric of Player 1 Elo rating}

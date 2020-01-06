@@ -4,9 +4,21 @@
 \alias{dynamic_in_match_win}
 \title{Dynamic Match Win Prediction}
 \usage{
-dynamic_in_match_win(point_a, point_b, game_a, game_b, set_a, set_b,
-  server.prob, returner.prob, server.serve.points.won, server.serve.points,
-  returner.serve.points.won, returner.serve.points, format)
+dynamic_in_match_win(
+  point_a,
+  point_b,
+  game_a,
+  game_b,
+  set_a,
+  set_b,
+  server.prob,
+  returner.prob,
+  server.serve.points.won,
+  server.serve.points,
+  returner.serve.points.won,
+  returner.serve.points,
+  format
+)
 }
 \arguments{
 \item{point_a}{Numeric game points won by current server at start of point}

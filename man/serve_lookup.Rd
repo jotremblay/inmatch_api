@@ -7,8 +7,6 @@
 serve_lookup(player1, player2)
 }
 \arguments{
-\item{Character}{of player1 name}
-
 \item{Character}{of player2 name}
 }
 \description{

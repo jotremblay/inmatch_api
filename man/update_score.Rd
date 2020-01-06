@@ -20,8 +20,6 @@ update_score(pointa, pointb, gamea, gameb, seta, setb, bestof3 = T)
 \item{set_a}{Numeric sets won by current server}
 
 \item{set_b}{Numeric sets won by current returner}
-
-\item{set_b}{Numeric sets won by current returner}
 }
 \description{
 Check score change based on result of current point and return score in terms of serving player of the previous point

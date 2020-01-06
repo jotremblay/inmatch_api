@@ -12,7 +12,7 @@
 #' @return data frame of player 1 and player 2 win probs
 #'
 #' @export
-get_baseline <- function(player1id, player2id = NULL, opponent1id, opponent2id = NULL, mens = TRUE, format = 'laver'){
+get_baseline <- function(player1id, player2id = NULL, opponent1id, opponent2id = NULL, mens = TRUE, format = 'bestof5'){
 	
 	player1.elo <- elo_lookup(player1id, player2id, mens)
 	
