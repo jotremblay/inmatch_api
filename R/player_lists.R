@@ -75,6 +75,8 @@ player_lists <- function(void){
 	rankings$oncourtid[rankings$wtaid == "WTA317351"] <- "12140"
 	rankings$oncourtid[rankings$wtaid == "WTA328308"] <- "57876"
 	
+	rankings$wtaid[rankings$wtaid == "WTA20702"] <- "WTA020702"
+	
 	# Cannot match "WTA320386"
 	rankings <- rankings %>% filter(wtaid != "WTA320386")
 	
@@ -109,6 +111,15 @@ player_lists <- function(void){
 		row.names = NULL
 	) %>%
 	unique()
+	
+	atp_links <- rbind(
+		atp_links,
+		data.frame(
+			player = "yen-hsun-lu",
+			atpid = "ATPL575",
+			stringsAsFactors = F
+		)
+	)
 	
 	data(atp_players, package = "oncourt")
 	
@@ -186,6 +197,7 @@ player_lists <- function(void){
 	atp_links$oncourtid[atp_links$atpid == "ATPH0AG"] <- "52188"
 	atp_links$oncourtid[atp_links$atpid == "ATPD0DT"] <- "72574"
 	atp_links$oncourtid[atp_links$atpid == "ATPP0DF"] <- "64916"
+	atp_links$oncourtid[atp_links$atpid == "ATPMO44"] <- "27358"
 
 	## Missing
 	if(any(is.na(atp_links$oncourtid))){
