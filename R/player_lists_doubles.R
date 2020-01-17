@@ -50,7 +50,7 @@ player_lists_doubles <- function(void){
 	
 	rankings <- rankings %>%
 		left_join(wta_players %>% dplyr::select(player = NAME_P, oncourtid = ID_P), by = "player")
-
+		
 	rankings$oncourtid[rankings$wtaid == "WTA320124"] <- "17142"
 	rankings$oncourtid[rankings$wtaid == "WTA326376"] <- "47152"
 	rankings$oncourtid[rankings$wtaid == "WTA318352"] <- "13310"
@@ -82,6 +82,17 @@ player_lists_doubles <- function(void){
 	
 	# Cannot match "WTA320386"
 	rankings <- rankings %>% filter(wtaid != "WTA320386")
+	
+	rankings <- rbind(
+		rankings,
+		data.frame(
+			player = c("Sania Mirza", "Kveta Peschke", "Monique Adamczak"),
+			wtaid = c("WTA310112","WTA080218", "WTA010293"),
+			pattern = NA,
+			oncourtid = c(1075, 272, 563),
+			stringsAsFactors = F
+		)
+	)
 	
 	## Missing
 	if(any(is.na(rankings$oncourtid))){
@@ -199,6 +210,16 @@ player_lists_doubles <- function(void){
 	atp_links$oncourtid[atp_links$atpid == "ATPR09V"] <- "44217"
 	atp_links$oncourtid[atp_links$atpid == "ATPMS03"] <- "30555"
 
+	atp_links <- rbind(
+		atp_links,
+		data.frame(
+			player = c("Alessandro Motti", "Amir Weintraub"),
+			atpid = c("ATPMA48", "ATPW471"),
+			pattern = NA,
+			oncourtid = c(3034, 7803),
+			stringsAsFactors = F
+		)
+	)	
 	
 	## Missing
 	if(any(is.na(atp_links$oncourtid))){
